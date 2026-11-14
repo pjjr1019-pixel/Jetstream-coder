@@ -253,3 +253,11 @@ Phil approved the continuous partial-feature plan. I am working on project index
 ### 2026-11-14 — Codex V0.001 Python and C# indexing
 
 Added Tree-sitter parsing for Python and C# named definitions and syntactic call sites. Calls are displayed as possible calls, not resolved relationships. Existing syntax indexes migrate by rebuilding on project open. The V0.001 build and all six tests passed, including Python and C# definitions/calls on a disposable project. Files: `electron/main.ts`, `src/main.tsx`, `scripts/build.mjs`, `package.json`, `package-lock.json`, `tests/desktop.test.mjs`, `README.md`, and `CHANGELOG.md`. Real AI review, approval, safe apply/rollback and crash recovery remain incomplete; Apply remains disabled.
+
+### 2026-11-14 — Codex implementing approved V0.001 plan
+
+Starting with editor folder creation and index/project-switch correctness. Continue through remaining features; AI Apply stays blocked pending independently verified review and recovery.
+
+### 2026-11-14 — Codex V0.001 editor, Git and recovery progress
+
+Added guarded folder creation, read-only Git history and branch inspection, waited for active indexing before closing a project's database, and recorded interrupted verification transactionally on project reopening. V0.001 build and all six tests passed, including folder validation, history lookup and reopening during verification on a disposable project. This does not prove process-crash recovery. Files: `electron/main.ts`, `electron/preload.ts`, `src/main.tsx`, `tests/desktop.test.mjs`, `CHANGELOG.md`, and this handoff. The approved plan is still incomplete; real independent review, approval, safe Apply and rollback remain disabled.

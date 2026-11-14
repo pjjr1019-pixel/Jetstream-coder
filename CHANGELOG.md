@@ -2,6 +2,12 @@
 
 ## V0.001
 
+- Interrupted verification is recorded in job history on project recovery.
+
+- Added Git history and branch inspection.
+
+- Added project folder creation and improved index safety when switching projects.
+
 - Added Python and C# definition and possible call indexing.
 
 - Added index status and an explicit rebuild control; index updates are serialized.
