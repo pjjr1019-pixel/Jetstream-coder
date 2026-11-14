@@ -213,3 +213,11 @@ Phil requested continuous work on unfinished features. I am adding guarded file 
 ### 2026-11-13 — Codex V0.001 file creation verified
 
 Completed and tested new-file creation in the Explorer. It requires a relative path with an existing parent folder and refuses existing files, traversal, and invalid Windows names. `npm run build` passed at V0.001; all six tests passed, including creation and refusal cases on a disposable project. Files: `electron/main.ts`, `electron/preload.ts`, `src/main.tsx`, `src/style.css`, `tests/desktop.test.mjs`, and `CHANGELOG.md`. AI Apply remains disabled. Remaining work includes independent review, approval, safe apply and crash recovery, broader index, model jobs, and Muse integration.
+
+### 2026-11-13 — Codex continuing verification hardening
+
+Working on invalidating in-flight verification if pause or command settings change while final snapshot checks run. AI Apply remains disabled.
+
+### 2026-11-13 — Codex verification progress
+
+Verification now rechecks pause and command settings after the final scratch fingerprint and before accepting results. Built V0.001 and all six tests passed, including pausing an in-flight check. Files: `electron/main.ts`, `tests/desktop.test.mjs`, and `CHANGELOG.md`. Real AI Apply and independent review remain disabled and unfinished.

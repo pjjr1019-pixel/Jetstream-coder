@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Improved verification to recheck pause and command settings before recording results.
+
 - Added creation of new files within the open project without overwriting existing files.
 
 - Added a staged-change review and commit flow for the open Git repository.

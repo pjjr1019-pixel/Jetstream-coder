@@ -287,6 +287,8 @@ app.whenReady().then(()=>{
      }
      const afterHash=await fingerprintTree(piece.scratch_path);
      if(expected!==generation)throw new Error('Project changed during verification');
+     if(d.prepare("SELECT value FROM settings WHERE key='paused'").get()?.value==='true')throw new Error('Team paused during verification');
+     if(get('build_command')!==build||get('test_command')!==test)throw new Error('Verification commands changed during the run');
      const passed=results.length===2&&results.every(r=>r.exit===0)&&beforeHash===afterHash;
      d.prepare('INSERT INTO verification_runs (job_id,before_hash,after_hash,build_command,test_command,results,valid,created) VALUES (?,?,?,?,?,?,?,?)').run(id,beforeHash,afterHash,build,test,JSON.stringify(results),passed?1:0,new Date().toISOString());
      const status=passed?'checks passed for snapshot; blocked: independent review unavailable':beforeHash!==afterHash?'scratch changed during checks; verification invalid':'checks failed; apply blocked';
