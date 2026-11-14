@@ -34,7 +34,7 @@ async function files() {
     return undefined;
   }
   async function walk(dir:string,parent:Rules[]) {
-    const rules=[...parent];const git=await readRules(dir,'.gitignore');if(git)rules.push(git);if(dir===project){const custom=await readRules(dir,'.jetstreamignore');if(custom)rules.push(custom);}
+    const rules=[...parent];const git=await readRules(dir,'.gitignore');if(git)rules.push(git);if(dir===project){const custom=await readRules(dir,'.jetstreamignore');if(custom)rules.push(custom);const configured=String(db?.prepare("SELECT value FROM settings WHERE key='ignore_patterns'").get()?.value||'');if(configured)rules.push({root:dir,matcher:ignore().add(configured)});}
     const entries=await fs.readdir(dir,{withFileTypes:true});
     for(const e of entries){ if(ignored.has(e.name)||e.isSymbolicLink()||e.name==='.env'||e.name.startsWith('.env.')||e.name.toLowerCase().endsWith('.pem')||e.name.toLowerCase().endsWith('.key')) continue;
       const full=path.join(dir,e.name);let excluded=false;
@@ -109,6 +109,13 @@ app.whenReady().then(()=>{
   next.exec("UPDATE jobs SET status='verification interrupted; retry required' WHERE status='checks running; apply blocked'");
   db?.close();db=next;project=selected; await rebuildIndex(); startWatcher(); return project;
  });
+ ipcMain.handle('project:ignore-get',()=>String(database().prepare("SELECT value FROM settings WHERE key='ignore_patterns'").get()?.value||''));
+ ipcMain.handle('project:ignore-set',async(_e,patterns:string)=>{
+   if(typeof patterns!=='string'||patterns.length>100000||patterns.includes('\0'))throw new Error('Invalid project ignore patterns');
+   const d=database(),expected=generation;ignore().add(patterns);
+   d.prepare("INSERT INTO settings(key,value) VALUES ('ignore_patterns',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(patterns);
+   await rebuildIndex(expected);if(expected!==generation)throw new Error('Project changed');if(!win.isDestroyed())win.webContents.send('project:changed');
+ });
  ipcMain.handle('project:files',files);
  ipcMain.handle('project:read',(_e,name:string)=>read(name));
  ipcMain.handle('project:save',async(_e,name:string,content:string,fingerprint:string)=>{
@@ -169,6 +176,10 @@ app.whenReady().then(()=>{
    if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid job');const d=database();
    if(verifying.has(id)||scratchLocks.has(id))throw new Error('Wait for the current operation to finish before cancelling');
    transaction(d,()=>{const job=d.prepare('SELECT status FROM jobs WHERE id=?').get(id) as {status:string}|undefined;if(!job)throw new Error('Job not found');if(job.status==='cancelled')throw new Error('Job is already cancelled');d.prepare('UPDATE jobs SET status=? WHERE id=?').run('cancelled',id);d.prepare('UPDATE verification_runs SET valid=0 WHERE job_id=?').run(id);d.prepare('INSERT INTO job_events (job_id,kind,detail,created) VALUES (?,?,?,?)').run(id,'cancelled','Cancelled by user',new Date().toISOString())});
+ });
+ ipcMain.handle('jobs:requeue',(_e,id:number)=>{
+   if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid job');const d=database();
+   transaction(d,()=>{const job=d.prepare('SELECT status FROM jobs WHERE id=?').get(id) as {status:string}|undefined;if(!job||job.status!=='cancelled')throw new Error('Only cancelled jobs can be requeued');const piece=d.prepare('SELECT job_id FROM pieces WHERE job_id=?').get(id);const status=piece?'scratch ready; blocked: independent review unavailable':'blocked: coordinator unavailable';d.prepare('UPDATE jobs SET status=? WHERE id=?').run(status,id);d.prepare('INSERT INTO job_events (job_id,kind,detail,created) VALUES (?,?,?,?)').run(id,'requeued','Requeued by user; checks must be run again',new Date().toISOString())});
  });
  const scratchLocks=new Set<number>();
  ipcMain.handle('jobs:scratch',async(_e,id:number)=>{

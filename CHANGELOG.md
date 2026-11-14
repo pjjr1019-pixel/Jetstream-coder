@@ -2,6 +2,10 @@
 
 ## V0.001
 
+- Cancelled jobs can be requeued while retaining their history; checks must be repeated.
+
+- Added project-specific exclusion settings for search and new scratch copies.
+
 - Added job cancellation with retained history and scratch files. Staging now checks that the file on disk matches the saved editor version.
 
 - Search results open at the matching line; open files warn when they change on disk.

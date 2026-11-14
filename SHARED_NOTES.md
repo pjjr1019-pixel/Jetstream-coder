@@ -183,3 +183,13 @@ Phil requested completion of partially implemented features. I am working on exp
 Added explicit cancellation for idle jobs. Cancellation records a history event, invalidates verification evidence, preserves scratch, and blocks later scratch preparation and verification; it survives reopening the project. Git staging now checks the disk fingerprint against the saved editor version. V0.001 build and all six tests passed, including cancellation, restart-by-reopen, retained scratch, and stale-file staging rejection.
 
 Files: `electron/main.ts`, `electron/preload.ts`, `src/main.tsx`, `tests/desktop.test.mjs`, `README.md`, and `CHANGELOG.md`. Still incomplete: production review/approval, safe Apply and crash recovery, fuller source control and index, local model jobs, Muse and switcher. Apply remains disabled. Keep V0.001 until Phil approves a new version.
+
+### 2026-11-13 — Codex continuing V0.001 project configuration
+
+Phil asked for continuous work on the partially implemented features without repeated prompts. I am implementing project-specific ignore settings and testing the resulting search/scratch exclusions. AI Apply remains disabled.
+
+### 2026-11-13 — Codex V0.001 exclusions and requeue progress
+
+Added project-specific Git-style exclusions in Explorer, persisted per project and applied to search and new scratch copies. Existing scratch copies are not changed. Added requeue for cancelled jobs; history and scratch remain, and prior verification stays invalid. Builds remain V0.001. Both builds and all six tests passed, including exclusion persistence and requeue on a disposable project.
+
+Still incomplete: real independent review and approval, production safe apply and crash recovery, broader indexing and source-control features, automated local-model jobs, Muse and app switcher. Apply remains disabled. Files: `electron/main.ts`, `electron/preload.ts`, `src/main.tsx`, `src/style.css`, `tests/desktop.test.mjs`, `README.md`, and `CHANGELOG.md`.

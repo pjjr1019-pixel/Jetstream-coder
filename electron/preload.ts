@@ -1,6 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron';
 contextBridge.exposeInMainWorld('coder', {
   openProject: () => ipcRenderer.invoke('project:open'),
+  getIgnorePatterns: () => ipcRenderer.invoke('project:ignore-get'),
+  setIgnorePatterns: (patterns:string) => ipcRenderer.invoke('project:ignore-set',patterns),
   listFiles: () => ipcRenderer.invoke('project:files'),
   readFile: (name:string) => ipcRenderer.invoke('project:read',name),
   saveFile: (name:string, content:string, fingerprint:string) => ipcRenderer.invoke('project:save',name,content,fingerprint),
@@ -19,6 +21,7 @@ contextBridge.exposeInMainWorld('coder', {
   gitDiff: () => ipcRenderer.invoke('project:git-diff'),
   gitStatus: () => ipcRenderer.invoke('project:git'),
   jobs: (query:string='') => ipcRenderer.invoke('jobs:list',query),
+  requeueJob: (id:number) => ipcRenderer.invoke('jobs:requeue',id),
   cancelJob: (id:number) => ipcRenderer.invoke('jobs:cancel',id),
   addJob: (request:string) => ipcRenderer.invoke('jobs:add',request),
   prepareScratch: (id:number) => ipcRenderer.invoke('jobs:scratch',id),
