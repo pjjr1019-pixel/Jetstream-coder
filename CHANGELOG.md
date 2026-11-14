@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Candidate evidence screen shows diff, model review, checks and readiness; exact evidence can be approved while Apply remains disabled.
+
 - Build and test commands can verify a specific scratch candidate and its source fingerprints.
 
 - Local reviewer examines the actual candidate diff and records the candidate fingerprints. Apply remains unavailable.
