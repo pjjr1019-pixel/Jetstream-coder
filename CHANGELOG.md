@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Existing candidate checkpoints can be inspected after reopening a project.
+
 - Job reports show candidate review, checks, current approval, checkpoint status and unavailable Apply.
 
 - Approved candidates can prepare and inspect a checkpoint; project Apply remains unavailable.
