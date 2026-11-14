@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Local workers create a separate single-file scratch candidate with a saved source snapshot, model attribution and reviewable diff.
+
 - Usage shows local proposal and review token counts reported by Ollama and labels unreported or interrupted attempts unknown.
 
 - Interrupted local proposal or review requests are recorded when a project reopens.
