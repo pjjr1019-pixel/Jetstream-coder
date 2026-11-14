@@ -2,6 +2,10 @@
 
 ## V0.001
 
+- Build and test commands can verify a specific scratch candidate and its source fingerprints.
+
+- Local reviewer examines the actual candidate diff and records the candidate fingerprints. Apply remains unavailable.
+
 - Simplified the editor-first workspace, grouped job actions, and added a dedicated settings page.
 
 - Prevent overlapping project-open requests from interleaving project state changes.

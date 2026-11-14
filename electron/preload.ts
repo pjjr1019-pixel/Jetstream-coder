@@ -43,7 +43,7 @@ contextBridge.exposeInMainWorld('coder', {
   openCandidate: (id:number) => ipcRenderer.invoke('jobs:open-candidate',id),
   verificationConfig: () => ipcRenderer.invoke('verification:config'),
   configureVerification: (build:string,test:string) => ipcRenderer.invoke('verification:configure',build,test),
-  verifyJob: (id:number) => ipcRenderer.invoke('verification:run',id),
+  verifyJob: (id:number,candidateId?:number) => ipcRenderer.invoke('verification:run',id,candidateId),
   jobGate: (id:number) => ipcRenderer.invoke('jobs:gate',id),
   jobHistory: (id:number) => ipcRenderer.invoke('jobs:history',id),
   setPause: (paused:boolean) => ipcRenderer.invoke('jobs:pause',paused),
