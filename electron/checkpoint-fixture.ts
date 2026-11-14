@@ -15,14 +15,14 @@ export async function rollbackCheckpointFixture(directory:string){
 }
 
 /** Classification only; never automatically overwrite a possibly edited file. */
-export async function inspectRecoveryFixture(directory:string){const states=await readJournal(directory);const info=await inspectCheckpoint(directory);return {state:states.at(-1),fileStatus:info.status,needsInspection:states.at(-1)==='applying'||states.at(-1)==='reverting'||info.status==='conflict'}}
+export async function inspectRecoveryFixture(directory:string){const states=await readJournal(directory);const info=await inspectCheckpoint(directory);return {state:states.at(-1),fileStatus:info.status,needsInspection:states.at(-1)==='applying'||states.at(-1)==='applied'||states.at(-1)==='checking'||states.at(-1)==='reverting'||info.status==='conflict'}}
 
 /** Explicit test-only recovery: never writes a file that does not match recorded bytes. */
 export async function recoverCheckpointFixture(directory:string){
  const info=await inspectCheckpoint(directory),state=(await readJournal(directory)).at(-1);if(info.status==='conflict')throw new Error('Recovery conflict; manual inspection required');
  if(state==='applying'&&info.status==='before'){await appendJournal(directory,'aborted');return 'aborted'}
  if(state==='reverting'&&info.status==='before'){await appendJournal(directory,'reverted');return 'reverted'}
- if((state!=='applying'&&state!=='reverting')||info.status!=='after')throw new Error('Checkpoint is not recoverable in this state');
+ if((state!=='applying'&&state!=='applied'&&state!=='checking'&&state!=='reverting')||info.status!=='after')throw new Error('Checkpoint is not recoverable in this state');
  const before=await fs.readFile(path.join(directory,'before.bin'));if(hash(before)!==info.record.beforeHash)throw new Error('Checkpoint is corrupt');const session=await openExclusiveWrite(path.join(info.record.project,info.record.relativePath),info.record.afterHash);
- try{if(state==='applying'){await appendJournal(directory,'applied');await appendJournal(directory,'reverting')}await session.commit(before);await appendJournal(directory,'reverted');return 'reverted'}finally{await session.cancel()}
+ try{if(state==='applying')await appendJournal(directory,'applied');if(state!=='reverting')await appendJournal(directory,'reverting');await session.commit(before);await appendJournal(directory,'reverted');return 'reverted'}finally{await session.cancel()}
 }
