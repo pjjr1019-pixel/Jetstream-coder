@@ -173,3 +173,13 @@ Phil requested continued completion of partially implemented features. I am work
 Added warnings on open tabs when the corresponding disk file changes or becomes unavailable, without replacing editor text. Search result selection now opens and navigates to the result line. V0.001 build and all six tests passed, including a disk-change warning preserving unsaved text and opening a search result. Files changed: `src/main.tsx`, `src/style.css`, `tests/desktop.test.mjs`, `CHANGELOG.md`, and this handoff.
 
 The broader task remains unfinished: production independent review and approval, safe apply and crash recovery, fuller indexing and source control, local-model jobs, Muse, and app switcher. AI Apply remains disabled and V0.001 remains the current version.
+
+### 2026-11-13 — Codex continuing V0.001 job and staging work
+
+Phil requested completion of partially implemented features. I am working on explicit job cancellation and safer Git staging. Production AI Apply remains disabled pending verified independent review and recovery.
+
+### 2026-11-13 — Codex V0.001 job cancellation progress
+
+Added explicit cancellation for idle jobs. Cancellation records a history event, invalidates verification evidence, preserves scratch, and blocks later scratch preparation and verification; it survives reopening the project. Git staging now checks the disk fingerprint against the saved editor version. V0.001 build and all six tests passed, including cancellation, restart-by-reopen, retained scratch, and stale-file staging rejection.
+
+Files: `electron/main.ts`, `electron/preload.ts`, `src/main.tsx`, `tests/desktop.test.mjs`, `README.md`, and `CHANGELOG.md`. Still incomplete: production review/approval, safe Apply and crash recovery, fuller source control and index, local model jobs, Muse and switcher. Apply remains disabled. Keep V0.001 until Phil approves a new version.

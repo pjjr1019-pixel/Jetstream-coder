@@ -147,10 +147,10 @@ app.whenReady().then(()=>{
    try {const result=await execFileAsync('powershell.exe',['-NoLogo','-NoProfile','-NonInteractive','-Command',command],{cwd:project,timeout:120000,maxBuffer:2_000_000,windowsHide:true});return {output:result.stdout+result.stderr,exit:0};}
    catch(e){const err=e as Error & {stdout?:string;stderr?:string;code?:number|string;killed?:boolean};return {output:(err.stdout||'')+(err.stderr||'')+(err.killed?'\nCommand timed out.':''),exit:typeof err.code==='number'?err.code:-1};}
  });
- ipcMain.handle('project:git-stage',async(_e,name:string)=>{
+ ipcMain.handle('project:git-stage',async(_e,name:string,fingerprint:string)=>{
    if(typeof name!=='string'||!name||!project)throw new Error('Open a file in a project first');
-   await checked(name);if(!(await files()).includes(name))throw new Error('Only visible project files can be staged');
-   try{await execFileAsync('git',['--literal-pathspecs','add','--',name],{cwd:project,timeout:10000,maxBuffer:1_000_000,windowsHide:true});}
+   const root=project,expected=generation;const target=await checked(name);if(!(await files()).includes(name))throw new Error('Only visible project files can be staged');if(expected!==generation)throw new Error('Project changed');if(typeof fingerprint!=='string'||hash(await fs.readFile(target))!==fingerprint)throw new Error('File changed on disk; reload before staging');
+   try{await execFileAsync('git',['--literal-pathspecs','add','--',name],{cwd:root,timeout:10000,maxBuffer:1_000_000,windowsHide:true});}
    catch(e){throw new Error(`Could not stage file: ${(e as Error).message}`)}
  });
  ipcMain.handle('project:git-unstage',async(_e,name:string)=>{
@@ -165,11 +165,16 @@ app.whenReady().then(()=>{
  ipcMain.handle('project:git',async()=>{if(!project) return '';try{return (await execFileAsync('git',['status','--short','--branch'],{cwd:project,timeout:10000,maxBuffer:1_000_000})).stdout;}catch{return 'Git status unavailable for this folder.';}});
  ipcMain.handle('jobs:list',(_e,query:string='')=>({jobs:database().prepare('SELECT * FROM jobs WHERE instr(lower(request),lower(?))>0 OR instr(lower(status),lower(?))>0 ORDER BY id DESC').all(typeof query==='string'?query.slice(0,200):'',typeof query==='string'?query.slice(0,200):''),paused:database().prepare("SELECT value FROM settings WHERE key='paused'").get()?.value==='true'}));
  ipcMain.handle('jobs:add',(_e,request:string)=>{if(typeof request!=='string'||!request.trim()||request.length>10000)throw new Error('Enter a job under 10,000 characters');const d=database(); transaction(d,()=>{const result=d.prepare('INSERT INTO jobs (request,status,created) VALUES (?,?,?)').run(request.trim(),'blocked: coordinator unavailable',new Date().toISOString());d.prepare('INSERT INTO job_events (job_id,kind,detail,created) VALUES (?,?,?,?)').run(Number(result.lastInsertRowid),'requested',request.trim(),new Date().toISOString())});return true;});
+ ipcMain.handle('jobs:cancel',(_e,id:number)=>{
+   if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid job');const d=database();
+   if(verifying.has(id)||scratchLocks.has(id))throw new Error('Wait for the current operation to finish before cancelling');
+   transaction(d,()=>{const job=d.prepare('SELECT status FROM jobs WHERE id=?').get(id) as {status:string}|undefined;if(!job)throw new Error('Job not found');if(job.status==='cancelled')throw new Error('Job is already cancelled');d.prepare('UPDATE jobs SET status=? WHERE id=?').run('cancelled',id);d.prepare('UPDATE verification_runs SET valid=0 WHERE job_id=?').run(id);d.prepare('INSERT INTO job_events (job_id,kind,detail,created) VALUES (?,?,?,?)').run(id,'cancelled','Cancelled by user',new Date().toISOString())});
+ });
  const scratchLocks=new Set<number>();
  ipcMain.handle('jobs:scratch',async(_e,id:number)=>{
    if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid job');
    const d=database(), expected=generation, root=project;
-   if(!d.prepare('SELECT id FROM jobs WHERE id=?').get(id))throw new Error('Job not found');
+   const job=d.prepare('SELECT status FROM jobs WHERE id=?').get(id) as {status:string}|undefined;if(!job)throw new Error('Job not found');if(job.status==='cancelled')throw new Error('Job is cancelled');
    const existing=d.prepare('SELECT scratch_path,base_path FROM pieces WHERE job_id=?').get(id) as {scratch_path:string;base_path:string}|undefined;
    if(existing){try{const b=await fs.stat(existing.base_path),w=await fs.stat(existing.scratch_path);if(!b.isDirectory()||!w.isDirectory())throw new Error()}catch{throw new Error('Scratch workspace is missing or damaged; do not recreate it automatically')}return existing.scratch_path;}
    if(scratchLocks.has(id))throw new Error('Scratch workspace is already being prepared');
@@ -225,6 +230,7 @@ app.whenReady().then(()=>{
  ipcMain.handle('verification:run',async(_e,id:number)=>{
    if(!Number.isSafeInteger(id))throw new Error('Invalid job');const d=database(), expected=generation;
    if(d.prepare("SELECT value FROM settings WHERE key='paused'").get()?.value==='true')throw new Error('Team is paused');
+   const job=d.prepare('SELECT status FROM jobs WHERE id=?').get(id) as {status:string}|undefined;if(!job||job.status==='cancelled')throw new Error('Job is unavailable or cancelled');
    const piece=d.prepare('SELECT scratch_path FROM pieces WHERE job_id=?').get(id) as {scratch_path:string}|undefined;
    if(!piece)throw new Error('Prepare scratch first');
    const get=(key:string)=>String(d.prepare('SELECT value FROM settings WHERE key=?').get(key)?.value||'');const build=get('build_command'),test=get('test_command');

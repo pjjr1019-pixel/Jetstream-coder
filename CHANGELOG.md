@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Added job cancellation with retained history and scratch files. Staging now checks that the file on disk matches the saved editor version.
+
 - Search results open at the matching line; open files warn when they change on disk.
 
 - Added unstage for the current file, including new repositories with no commits.
