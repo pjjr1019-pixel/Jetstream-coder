@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Approved candidates can prepare and inspect a checkpoint; project Apply remains unavailable.
+
 - Candidate evidence supports editing or rejecting a candidate; rejected candidates cannot be approved.
 
 - Candidate evidence screen shows diff, model review, checks and readiness; exact evidence can be approved while Apply remains disabled.

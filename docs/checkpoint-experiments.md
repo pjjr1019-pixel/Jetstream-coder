@@ -1,6 +1,6 @@
 # Checkpoint and exclusive-write experiments
 
-These modules and tests are development fixtures only. They are not wired to the app's Apply gate and must not be used for real projects.
+Checkpoint preparation and inspection are available for approved candidates; they do not modify project files. The write, rollback and journal fixtures are not wired to the app Apply gate and must not be used for real projects.
 
 `checkpoint.ts` prepares and inspects a single-file checkpoint, `exclusive-write.ts` tests an exclusive Windows compare-and-write, and `checkpoint-journal.ts` validates an append-only state sequence. `checkpoint-fixture.ts` combines them only for disposable tests.
 
