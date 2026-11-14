@@ -41,6 +41,7 @@ contextBridge.exposeInMainWorld('coder', {
   latestCandidate: (id:number) => ipcRenderer.invoke('jobs:latest-candidate',id),
   candidateDiff: (id:number) => ipcRenderer.invoke('jobs:candidate-diff',id),
   candidateEvidence: (id:number) => ipcRenderer.invoke('jobs:candidate-evidence',id),
+  rejectCandidate: (id:number) => ipcRenderer.invoke('jobs:reject-candidate',id),
   approveCandidate: (id:number,source:string,candidate:string,review:number,check:number) => ipcRenderer.invoke('jobs:approve-candidate',id,source,candidate,review,check),
   openCandidate: (id:number) => ipcRenderer.invoke('jobs:open-candidate',id),
   verificationConfig: () => ipcRenderer.invoke('verification:config'),
