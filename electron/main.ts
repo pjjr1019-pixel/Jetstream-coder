@@ -133,7 +133,7 @@ function createWindow(){
 app.whenReady().then(()=>{
  let projectOpening=false;
  ipcMain.handle('project:open',async()=>{
-  if(projectOpening)throw new Error('A project is already being opened');projectOpening=true;try{
+  if(projectOpening)return null;projectOpening=true;try{
   const selection=await dialog.showOpenDialog(win,{properties:['openDirectory']}); if(selection.canceled||!selection.filePaths[0]) return null;
   const selected=await fs.realpath(selection.filePaths[0]);
   ++verificationEpoch; ++generation; indexState={status:'idle',message:'Opening project',indexed:0,skipped:0}; watcher?.close(); if(indexTimer)clearTimeout(indexTimer); terminalSession++; if(terminal){terminal.kill(); terminal=undefined;win.webContents.send('terminal:exit',0)}
@@ -158,7 +158,7 @@ app.whenReady().then(()=>{
   transaction(next,()=>{const interrupted=next.prepare('SELECT job_id,kind,detail FROM local_inflight').all() as {job_id:number;kind:string;detail:string}[];for(const item of interrupted)next.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(item.job_id,'local_request_interrupted',JSON.stringify({kind:item.kind,detail:item.detail}),new Date().toISOString());next.prepare('DELETE FROM local_inflight').run()});
   transaction(next,()=>{const interrupted=next.prepare('SELECT job_id,path FROM candidate_preparations').all() as {job_id:number;path:string}[];for(const item of interrupted)next.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(item.job_id,'candidate_interrupted',`Candidate preparation stopped; incomplete files may remain at ${item.path}`,new Date().toISOString());next.prepare('DELETE FROM candidate_preparations').run()});
   transaction(next,()=>{const rows=next.prepare('SELECT job_id,candidate_id,directory FROM checkpoint_preparations').all() as {job_id:number;candidate_id:number;directory:string}[];for(const row of rows)next.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(row.job_id,'checkpoint_interrupted',JSON.stringify({candidateId:row.candidate_id,directory:row.directory}),new Date().toISOString());next.prepare('DELETE FROM checkpoint_preparations').run()});
-  db?.close();db=next;project=selected; await rebuildIndex(); startWatcher(); return project;
+  db?.close();db=next;project=selected;indexState={status:'building',message:'Indexing project in the background',indexed:0,skipped:0};startWatcher();void rebuildIndex().then(()=>{if(!win.isDestroyed())win.webContents.send('project:changed')}).catch(()=>{if(!win.isDestroyed())win.webContents.send('project:changed')});return project;
   }finally{projectOpening=false}
  });
  ipcMain.handle('project:index-status',()=>indexState);

@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Project opening now prevents repeated clicks and builds the search index in the background.
+
 - Job reports include recorded disposable-test Apply and post-apply check outcomes.
 
 - Checkpoint inspection identifies interrupted operations requiring recovery inspection.
