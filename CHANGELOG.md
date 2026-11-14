@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Simplified the editor-first workspace, grouped job actions, and added a dedicated settings page.
+
 - Prevent overlapping project-open requests from interleaving project state changes.
 
 - Local workers create a separate single-file scratch candidate with a saved source snapshot, model attribution and reviewable diff.
