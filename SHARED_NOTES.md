@@ -285,3 +285,7 @@ A failed scratch creation cleans up only the new, exclusively created temporary 
 ### 2026-11-14 — Codex interrupted scratch recovery
 
 Scratch preparation is recorded before copying. Reopening a project records interrupted attempts and preserves any incomplete directory for inspection; ordinary errors are recorded and clean up the workspace created by that attempt. V0.001 remains unchanged. Recovery was tested by injecting an interrupted record; a real process-kill test and production Apply recovery remain outstanding.
+
+### 2026-11-14 — Codex actual scratch interruption test
+
+The optional `scripts/verify-scratch-crash.mjs` test held a disposable scratch copy and forced the test Electron main process to exit. Reopening the same project reported interrupted scratch preparation. This does not test production Apply or rollback crash recovery.
