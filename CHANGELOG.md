@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Per-file rename diffs and unstaging now include both the original and new paths.
+
 - Gate status now reports cancelled jobs and project files that differ from the scratch baseline.
 
 - Commit previews now also verify the current branch, even when two branches point to the same commit.

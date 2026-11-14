@@ -210,7 +210,7 @@ app.whenReady().then(()=>{
  ipcMain.handle('project:git-file-diff',async(_e,name:string)=>{
    if(typeof name!=='string'||!name)throw new Error('Invalid file path');const root=project,expected=generation;const changes=await gitChanges();const change=changes.find(x=>x.path===name);if(!change)throw new Error('File is not in Git status');
    if(change.index==='?'&&change.worktree==='?'){if(!(await files()).includes(name))return 'Untracked file is excluded from the project index; content is not displayed.';const data=await read(name);if(expected!==generation)throw new Error('Project changed');return `UNTRACKED FILE\n${name}\n\n${data.content}`;}
-   const run=async(extra:string[])=> (await execFileAsync('git',['--literal-pathspecs','-c','core.pager=cat','diff','--no-ext-diff','--no-textconv',...extra,'--',name],{cwd:root,timeout:10000,maxBuffer:2000000,windowsHide:true})).stdout;
+   const run=async(extra:string[])=> (await execFileAsync('git',['--literal-pathspecs','-c','core.pager=cat','diff','--no-ext-diff','--no-textconv',...extra,'--',name,...(change.originalPath?[change.originalPath]:[])],{cwd:root,timeout:10000,maxBuffer:2000000,windowsHide:true})).stdout;
    const staged=await run(['--cached']),unstaged=await run([]);if(expected!==generation)throw new Error('Project changed');return `STAGED\n${staged||'(none)'}\nUNSTAGED\n${unstaged||'(none; untracked files are not included in Git diffs)'}`;
  });
  ipcMain.handle('project:git-stage',async(_e,name:string,fingerprint:string)=>{
@@ -221,10 +221,10 @@ app.whenReady().then(()=>{
  });
  ipcMain.handle('project:git-unstage',async(_e,name:string)=>{
    if(typeof name!=='string'||!name||!project)throw new Error('Open a file in a project first');const root=project,expected=generation;
-   const changes=await gitChanges();if(!changes.some(x=>x.path===name&&x.index!==' '&&x.index!=='?'))throw new Error('File has no staged change');const resolved=path.resolve(root,name),rel=path.relative(root,resolved);if(rel==='..'||rel.startsWith('..'+path.sep)||path.isAbsolute(rel))throw new Error('Path is outside project');if(expected!==generation)throw new Error('Project changed');
+   const changes=await gitChanges();const change=changes.find(x=>x.path===name&&x.index!==' '&&x.index!=='?');if(!change)throw new Error('File has no staged change');const resolved=path.resolve(root,name),rel=path.relative(root,resolved);if(rel==='..'||rel.startsWith('..'+path.sep)||path.isAbsolute(rel))throw new Error('Path is outside project');if(expected!==generation)throw new Error('Project changed');
    let hasHead=true;try{await execFileAsync('git',['rev-parse','--verify','HEAD'],{cwd:root,timeout:10000,windowsHide:true})}catch{hasHead=false}
    if(expected!==generation)throw new Error('Project changed');
-   const args=hasHead?['--literal-pathspecs','restore','--staged','--',name]:['--literal-pathspecs','rm','--cached','--force','--',name];
+   const names=[name,...(change.index==='R'&&change.originalPath?[change.originalPath]:[])];const args=hasHead?['--literal-pathspecs','restore','--staged','--',...names]:['--literal-pathspecs','rm','--cached','--force','--',...names];
    try{await execFileAsync('git',args,{cwd:root,timeout:10000,maxBuffer:1_000_000,windowsHide:true})}catch(e){throw new Error(`Could not unstage file: ${(e as Error).message}`)}
  });
  async function gitCommitPreview(){

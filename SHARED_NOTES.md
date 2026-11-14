@@ -273,3 +273,7 @@ Per-file Git status, diff, deletion staging and unstaging are implemented. Local
 ### 2026-11-14 — Codex commit and gate safeguards
 
 Commit review now checks the branch reference as well as the commit and staged tree; a switch between branches at the same commit requires review again. Gate status reports project snapshot conflicts and cancelled jobs. V0.001 build and all six tests passed. Apply and final review remain incomplete.
+
+### 2026-11-14 — Codex Git rename handling
+
+Per-file rename diffs include the old and new paths, and unstaging a rename restores both paths in the index without altering working files. Copies do not unstage the original. V0.001 remains the release version.
