@@ -14,7 +14,7 @@ try{
  if(notes){const at=clean.indexOf(marker);if(at<0)throw new Error(`Missing changelog section ${label}`);const insert=at+marker.length;writeFileSync(logPath,clean.slice(0,insert)+'\n\n'+notes+clean.slice(insert));}
  const run=(script,args)=>{const result=spawnSync(process.execPath,[path.join(root,script),...args],{cwd:root,stdio:'inherit',env:process.env});if(result.error)throw result.error;if(result.status!==0)throw new Error(`${script} failed (${result.status??result.signal})`)};
  run('node_modules/vite/bin/vite.js',['build']);
- run('node_modules/esbuild/bin/esbuild',['electron/main.ts','electron/preload.ts','electron/gate.ts','electron/change-fixture.ts','--bundle','--platform=node','--format=cjs','--external:electron','--external:node-pty','--external:web-tree-sitter','--outdir=dist-electron','--out-extension:.js=.cjs']);
+ run('node_modules/esbuild/bin/esbuild',['electron/main.ts','electron/preload.ts','electron/gate.ts','electron/change-fixture.ts','electron/checkpoint.ts','electron/exclusive-write.ts','electron/checkpoint-fixture.ts','electron/checkpoint-journal.ts','--bundle','--platform=node','--format=cjs','--external:electron','--external:node-pty','--external:web-tree-sitter','--outdir=dist-electron','--out-extension:.js=.cjs']);
  run('node_modules/typescript/bin/tsc',['--noEmit']);
  writeFileSync(pendingPath,'');success=true;console.log(`Built ${label}`);
 } catch(error){writeFileSync(versionPath,originalVersion);writeFileSync(logPath,originalLog);console.error(error);process.exitCode=1}

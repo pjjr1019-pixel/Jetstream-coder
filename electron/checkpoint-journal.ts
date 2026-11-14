@@ -1,0 +1,8 @@
+import fs from 'node:fs/promises';import path from 'node:path';
+export type JournalState='prepared'|'applying'|'applied'|'checking'|'checks_passed'|'checks_failed'|'reverting'|'reverted';
+const allowed:Record<JournalState,JournalState[]>={prepared:['applying'],applying:['applied'],applied:['checking','reverting'],checking:['checks_passed','checks_failed'],checks_passed:['reverting'],checks_failed:['reverting'],reverting:['reverted'],reverted:[]};
+/** Test-only append-only checkpoint journal; callers must verify filesystem durability before production use. */
+export async function readJournal(directory:string):Promise<JournalState[]>{
+ const states:JournalState[]=['prepared'];const files=(await fs.readdir(directory)).filter(name=>/^state-.*\.json$/i.test(name)).sort();for(let i=0;i<files.length;i++){const sequence=i+1;const expected=`state-${String(sequence).padStart(6,'0')}.json`;if(files[i]!==expected)throw new Error('Checkpoint journal has missing or invalid entries');const entry=JSON.parse(await fs.readFile(path.join(directory,files[i]),'utf8')) as {sequence:number;state:JournalState};if(entry.sequence!==sequence||!allowed[states.at(-1)!]?.includes(entry.state))throw new Error('Checkpoint journal is invalid');states.push(entry.state)}return states;
+}
+export async function appendJournal(directory:string,state:JournalState){const states=await readJournal(directory);if(!allowed[states.at(-1)!].includes(state))throw new Error('Invalid checkpoint transition');const seq=states.length;const filename=path.join(directory,`state-${String(seq).padStart(6,'0')}.json`);const handle=await fs.open(filename,'wx');try{await handle.writeFile(JSON.stringify({sequence:seq,state}));await handle.sync()}finally{await handle.close()}}
