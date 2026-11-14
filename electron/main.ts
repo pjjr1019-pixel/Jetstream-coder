@@ -14,6 +14,7 @@ import ts from 'typescript';
 
 const execFileAsync=promisify(execFile);
 let terminal:pty.IPty|undefined; let terminalSession=0; let verificationEpoch=0;
+let indexTail:Promise<void>=Promise.resolve();let indexState:{status:'idle'|'building'|'ready'|'error';message:string;indexed:number;skipped:number}={status:'idle',message:'Open a project',indexed:0,skipped:0};
 let win:BrowserWindow; let project=''; let db:DatabaseSync|undefined; let closeAllowed=false; let watcher:FSWatcher|undefined; let generation=0; let indexTimer:ReturnType<typeof setTimeout>|undefined;
 const ignored=new Set(['.git','node_modules','dist','dist-electron','build','.jetstream-coder']);
 const hash=(s:string|Buffer)=>crypto.createHash('sha256').update(s).digest('hex');
@@ -66,19 +67,24 @@ function indexSyntax(target:DatabaseSync,name:string,content:string){
   }
   visit(source,'<module>');
 }
-async function rebuildIndex(expected=generation) {
+async function rebuildIndexWork(expected=generation,force=false) {
   const target=db; if(!target || !project) return;
+  if(force){target.exec('DELETE FROM file_index; DELETE FROM syntax_indexed; DELETE FROM symbols; DELETE FROM calls')};
   const names=await files(); if(expected!==generation) return;
-  const seen=new Set<string>();
+  const seen=new Set<string>();let skipped=0;
   for(const name of names) {
     if(expected!==generation) return;
     try { const data=await read(name); if(expected!==generation) return;
       const prior=target.prepare('SELECT fingerprint FROM file_index WHERE path=?').get(name)?.fingerprint;if(prior!==data.fingerprint){target.prepare('INSERT INTO file_index (path,content,fingerprint) VALUES (?,?,?) ON CONFLICT(path) DO UPDATE SET content=excluded.content,fingerprint=excluded.fingerprint').run(name,data.content,data.fingerprint);} const syntaxHash=target.prepare('SELECT fingerprint FROM syntax_indexed WHERE path=?').get(name)?.fingerprint;if(syntaxHash!==data.fingerprint){indexSyntax(target,name,data.content);target.prepare('INSERT INTO syntax_indexed(path,fingerprint) VALUES (?,?) ON CONFLICT(path) DO UPDATE SET fingerprint=excluded.fingerprint').run(name,data.fingerprint)} seen.add(name);
-    } catch { /* Binary, oversized, changed, or unreadable files are omitted. */ }
+    } catch { skipped++; /* Unreadable, binary, or unsupported files are omitted. */ }
   }
   if(expected!==generation) return;
   const rows=target.prepare('SELECT path FROM file_index').all() as {path:string}[];
   for(const row of rows) if(!seen.has(row.path)){target.prepare('DELETE FROM file_index WHERE path=?').run(row.path);target.prepare('DELETE FROM syntax_indexed WHERE path=?').run(row.path);target.prepare('DELETE FROM symbols WHERE path=?').run(row.path);target.prepare('DELETE FROM calls WHERE path=?').run(row.path);}
+  indexState={status:'ready',message:skipped?`${skipped} files skipped (unreadable, binary, or over the size limit)`:'Index is current',indexed:seen.size,skipped};
+}
+function rebuildIndex(expected=generation,force=false):Promise<void>{
+  const task=indexTail.catch(()=>{}).then(async()=>{if(expected!==generation)return;indexState={...indexState,status:'building',message:'Updating index'};try{await rebuildIndexWork(expected,force)}catch(error){if(expected===generation)indexState={...indexState,status:'error',message:error instanceof Error?error.message:String(error)};throw error}});indexTail=task;return task;
 }
 function startWatcher() {
   watcher?.close(); if(indexTimer)clearTimeout(indexTimer);
@@ -101,7 +107,7 @@ app.whenReady().then(()=>{
  ipcMain.handle('project:open',async()=>{
   const selection=await dialog.showOpenDialog(win,{properties:['openDirectory']}); if(selection.canceled||!selection.filePaths[0]) return null;
   const selected=await fs.realpath(selection.filePaths[0]);
-  ++verificationEpoch; ++generation; watcher?.close(); if(indexTimer)clearTimeout(indexTimer); terminalSession++; if(terminal){terminal.kill(); terminal=undefined;win.webContents.send('terminal:exit',0)}
+  ++verificationEpoch; ++generation; indexState={status:'idle',message:'Opening project',indexed:0,skipped:0}; watcher?.close(); if(indexTimer)clearTimeout(indexTimer); terminalSession++; if(terminal){terminal.kill(); terminal=undefined;win.webContents.send('terminal:exit',0)}
   const dataDir=path.join(app.getPath('userData'),'projects'); await fs.mkdir(dataDir,{recursive:true});
   const next=new DatabaseSync(path.join(dataDir,hash(selected)+'.sqlite'));
   next.exec("CREATE TABLE IF NOT EXISTS jobs (id INTEGER PRIMARY KEY, request TEXT NOT NULL, status TEXT NOT NULL, created TEXT NOT NULL); CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL); CREATE TABLE IF NOT EXISTS file_index (path TEXT PRIMARY KEY, content TEXT NOT NULL, fingerprint TEXT NOT NULL); CREATE TABLE IF NOT EXISTS job_events (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, kind TEXT NOT NULL, detail TEXT NOT NULL, created TEXT NOT NULL); CREATE TABLE IF NOT EXISTS pieces (job_id INTEGER PRIMARY KEY, base_path TEXT NOT NULL, scratch_path TEXT NOT NULL, manifest TEXT NOT NULL); CREATE TABLE IF NOT EXISTS syntax_indexed (path TEXT PRIMARY KEY, fingerprint TEXT NOT NULL); CREATE TABLE IF NOT EXISTS symbols (path TEXT NOT NULL, name TEXT NOT NULL, kind TEXT NOT NULL, line INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS calls (path TEXT NOT NULL, caller TEXT NOT NULL, target TEXT NOT NULL, line INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS reviews (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, snapshot TEXT NOT NULL, author_model TEXT NOT NULL, reviewer_model TEXT NOT NULL, approved INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS approvals (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, snapshot TEXT NOT NULL, check_id INTEGER NOT NULL, review_id INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS verification_runs (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, before_hash TEXT NOT NULL, after_hash TEXT NOT NULL, build_command TEXT NOT NULL, test_command TEXT NOT NULL, results TEXT NOT NULL, valid INTEGER NOT NULL, created TEXT NOT NULL)");
@@ -109,6 +115,8 @@ app.whenReady().then(()=>{
   next.exec("UPDATE jobs SET status='verification interrupted; retry required' WHERE status='checks running; apply blocked'");
   db?.close();db=next;project=selected; await rebuildIndex(); startWatcher(); return project;
  });
+ ipcMain.handle('project:index-status',()=>indexState);
+ ipcMain.handle('project:index-rebuild',async()=>{if(!project)throw new Error('Open a project first');await rebuildIndex(generation,true);return indexState});
  ipcMain.handle('project:ignore-get',()=>String(database().prepare("SELECT value FROM settings WHERE key='ignore_patterns'").get()?.value||''));
  ipcMain.handle('project:ignore-set',async(_e,patterns:string)=>{
    if(typeof patterns!=='string'||patterns.length>100000||patterns.includes('\0'))throw new Error('Invalid project ignore patterns');

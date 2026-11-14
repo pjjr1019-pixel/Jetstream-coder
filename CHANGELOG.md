@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Added index status and an explicit rebuild control; index updates are serialized.
+
 - Job search now includes recorded history, and verification outcomes are recorded in the job history.
 
 - Verification now invalidates runs if the team is paused or check settings are changed and restored mid-run.

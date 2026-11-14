@@ -237,3 +237,11 @@ Phil requested continued work on partial features without routine questions. I a
 ### 2026-11-13 — Codex V0.001 job history progress
 
 Job search includes event kinds and details, and verification completion now records status, snapshot, and validity alongside verification evidence and job status in one SQLite transaction. `npm run build` and all six tests passed, including history search and outcome recording. Files: `electron/main.ts`, `src/main.tsx`, `tests/desktop.test.mjs`, `CHANGELOG.md`, and this handoff. AI Apply remains disabled; real review, approval, safe apply/rollback, crash recovery and other previously listed features remain incomplete. Keep V0.001 until Phil approves a change.
+
+### 2026-11-14 — Codex starting partial-feature implementation
+
+Phil approved the plan to finish partial features while keeping V0.001. I am working first on index rebuild/status and crash recovery. AI Apply stays disabled until independent review and safe recovery are verified.
+
+### 2026-11-14 — Codex V0.001 index progress
+
+Added index status, skipped-file counts, an explicit full rebuild action, and serialized indexing operations. V0.001 build and all six tests passed, including a full rebuild and symbol lookup on a disposable project. Files: `electron/main.ts`, `electron/preload.ts`, `src/main.tsx`, `tests/desktop.test.mjs`, `CHANGELOG.md`, and this handoff. Python/C# indexing, real AI review/approval, production apply/rollback and crash recovery remain incomplete; AI Apply is disabled.

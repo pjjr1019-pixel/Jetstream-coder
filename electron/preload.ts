@@ -3,6 +3,8 @@ contextBridge.exposeInMainWorld('coder', {
   openProject: () => ipcRenderer.invoke('project:open'),
   getIgnorePatterns: () => ipcRenderer.invoke('project:ignore-get'),
   setIgnorePatterns: (patterns:string) => ipcRenderer.invoke('project:ignore-set',patterns),
+  indexStatus: () => ipcRenderer.invoke('project:index-status'),
+  rebuildIndex: () => ipcRenderer.invoke('project:index-rebuild'),
   listFiles: () => ipcRenderer.invoke('project:files'),
   createFile: (name:string) => ipcRenderer.invoke('project:create-file',name),
   readFile: (name:string) => ipcRenderer.invoke('project:read',name),
