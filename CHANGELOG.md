@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Added Python and C# definition and possible call indexing.
+
 - Added index status and an explicit rebuild control; index updates are serialized.
 
 - Job search now includes recorded history, and verification outcomes are recorded in the job history.

@@ -11,6 +11,7 @@ import {gateReasons} from './gate';
 import ignore from 'ignore';
 import * as pty from 'node-pty';
 import ts from 'typescript';
+import {Parser,Language,type Node as SyntaxNode} from 'web-tree-sitter';
 
 const execFileAsync=promisify(execFile);
 let terminal:pty.IPty|undefined; let terminalSession=0; let verificationEpoch=0;
@@ -67,6 +68,21 @@ function indexSyntax(target:DatabaseSync,name:string,content:string){
   }
   visit(source,'<module>');
 }
+let parserLanguages:Promise<Record<string,Language>>|undefined;
+async function indexOtherSyntax(target:DatabaseSync,name:string,content:string){
+  const ext=path.extname(name).toLowerCase();if(ext!=='.py'&&ext!=='.cs')return;
+  parserLanguages??=(async()=>{await Parser.init();const base=path.join(app.getAppPath(),'node_modules','tree-sitter-wasms','out');return {'.py':await Language.load(path.join(base,'tree-sitter-python.wasm')),'.cs':await Language.load(path.join(base,'tree-sitter-c_sharp.wasm'))}})();
+  const languages=await parserLanguages;const parser=new Parser();parser.setLanguage(languages[ext]);const tree=parser.parse(content);if(!tree){parser.delete();throw new Error('Could not parse file')}
+  try{
+    const symbol=target.prepare('INSERT INTO symbols (path,name,kind,line) VALUES (?,?,?,?)');const call=target.prepare('INSERT INTO calls (path,caller,target,line) VALUES (?,?,?,?)');
+    const definitions=new Set(['function_definition','class_definition','class_declaration','struct_declaration','interface_declaration','method_declaration','constructor_declaration','record_declaration']);
+    function visit(node:SyntaxNode,caller:string){let scope=caller;
+      if(definitions.has(node.type)){const child=node.childForFieldName('name');if(child){symbol.run(name,child.text,node.type,child.startPosition.row+1);if(node.type==='function_definition'||node.type==='method_declaration'||node.type==='constructor_declaration')scope=child.text}}
+      if(node.type==='call'||node.type==='invocation_expression'){const fn=node.childForFieldName('function')??node.childForFieldName('expression');if(fn)call.run(name,scope,fn.text,node.startPosition.row+1)}
+      for(const child of node.namedChildren)if(child)visit(child,scope);
+    }visit(tree.rootNode,'<module>');
+  }finally{tree.delete();parser.delete()}
+}
 async function rebuildIndexWork(expected=generation,force=false) {
   const target=db; if(!target || !project) return;
   if(force){target.exec('DELETE FROM file_index; DELETE FROM syntax_indexed; DELETE FROM symbols; DELETE FROM calls')};
@@ -75,7 +91,7 @@ async function rebuildIndexWork(expected=generation,force=false) {
   for(const name of names) {
     if(expected!==generation) return;
     try { const data=await read(name); if(expected!==generation) return;
-      const prior=target.prepare('SELECT fingerprint FROM file_index WHERE path=?').get(name)?.fingerprint;if(prior!==data.fingerprint){target.prepare('INSERT INTO file_index (path,content,fingerprint) VALUES (?,?,?) ON CONFLICT(path) DO UPDATE SET content=excluded.content,fingerprint=excluded.fingerprint').run(name,data.content,data.fingerprint);} const syntaxHash=target.prepare('SELECT fingerprint FROM syntax_indexed WHERE path=?').get(name)?.fingerprint;if(syntaxHash!==data.fingerprint){indexSyntax(target,name,data.content);target.prepare('INSERT INTO syntax_indexed(path,fingerprint) VALUES (?,?) ON CONFLICT(path) DO UPDATE SET fingerprint=excluded.fingerprint').run(name,data.fingerprint)} seen.add(name);
+      const prior=target.prepare('SELECT fingerprint FROM file_index WHERE path=?').get(name)?.fingerprint;if(prior!==data.fingerprint){target.prepare('INSERT INTO file_index (path,content,fingerprint) VALUES (?,?,?) ON CONFLICT(path) DO UPDATE SET content=excluded.content,fingerprint=excluded.fingerprint').run(name,data.content,data.fingerprint);} const syntaxHash=target.prepare('SELECT fingerprint FROM syntax_indexed WHERE path=?').get(name)?.fingerprint;if(syntaxHash!==data.fingerprint){indexSyntax(target,name,data.content);await indexOtherSyntax(target,name,data.content);if(expected!==generation)return;target.prepare('INSERT INTO syntax_indexed(path,fingerprint) VALUES (?,?) ON CONFLICT(path) DO UPDATE SET fingerprint=excluded.fingerprint').run(name,data.fingerprint)} seen.add(name);
     } catch { skipped++; /* Unreadable, binary, or unsupported files are omitted. */ }
   }
   if(expected!==generation) return;
@@ -112,6 +128,7 @@ app.whenReady().then(()=>{
   const next=new DatabaseSync(path.join(dataDir,hash(selected)+'.sqlite'));
   next.exec("CREATE TABLE IF NOT EXISTS jobs (id INTEGER PRIMARY KEY, request TEXT NOT NULL, status TEXT NOT NULL, created TEXT NOT NULL); CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL); CREATE TABLE IF NOT EXISTS file_index (path TEXT PRIMARY KEY, content TEXT NOT NULL, fingerprint TEXT NOT NULL); CREATE TABLE IF NOT EXISTS job_events (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, kind TEXT NOT NULL, detail TEXT NOT NULL, created TEXT NOT NULL); CREATE TABLE IF NOT EXISTS pieces (job_id INTEGER PRIMARY KEY, base_path TEXT NOT NULL, scratch_path TEXT NOT NULL, manifest TEXT NOT NULL); CREATE TABLE IF NOT EXISTS syntax_indexed (path TEXT PRIMARY KEY, fingerprint TEXT NOT NULL); CREATE TABLE IF NOT EXISTS symbols (path TEXT NOT NULL, name TEXT NOT NULL, kind TEXT NOT NULL, line INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS calls (path TEXT NOT NULL, caller TEXT NOT NULL, target TEXT NOT NULL, line INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS reviews (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, snapshot TEXT NOT NULL, author_model TEXT NOT NULL, reviewer_model TEXT NOT NULL, approved INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS approvals (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, snapshot TEXT NOT NULL, check_id INTEGER NOT NULL, review_id INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS verification_runs (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, before_hash TEXT NOT NULL, after_hash TEXT NOT NULL, build_command TEXT NOT NULL, test_command TEXT NOT NULL, results TEXT NOT NULL, valid INTEGER NOT NULL, created TEXT NOT NULL)");
   for(const table of ['reviews','approvals']){const cols=next.prepare(`PRAGMA table_info(${table})`).all() as {name:string}[];if(!cols.some(c=>c.name==='base_hash'))next.exec(`ALTER TABLE ${table} ADD COLUMN base_hash TEXT NOT NULL DEFAULT ''`);}
+  if(next.prepare("SELECT value FROM settings WHERE key='syntax_version'").get()?.value!=='2'){next.exec("DELETE FROM syntax_indexed; INSERT INTO settings(key,value) VALUES ('syntax_version','2') ON CONFLICT(key) DO UPDATE SET value='2'")};
   next.exec("UPDATE jobs SET status='verification interrupted; retry required' WHERE status='checks running; apply blocked'");
   db?.close();db=next;project=selected; await rebuildIndex(); startWatcher(); return project;
  });
@@ -350,4 +367,5 @@ app.whenReady().then(()=>{
  ipcMain.on('close:confirm',()=>{closeAllowed=true;win.close()}); createWindow();
 });
 app.on('window-all-closed',()=>{++generation; watcher?.close(); if(indexTimer)clearTimeout(indexTimer); terminalSession++;terminal?.kill(); db?.close();app.quit()});
+
 

@@ -245,3 +245,11 @@ Phil approved the plan to finish partial features while keeping V0.001. I am wor
 ### 2026-11-14 — Codex V0.001 index progress
 
 Added index status, skipped-file counts, an explicit full rebuild action, and serialized indexing operations. V0.001 build and all six tests passed, including a full rebuild and symbol lookup on a disposable project. Files: `electron/main.ts`, `electron/preload.ts`, `src/main.tsx`, `tests/desktop.test.mjs`, `CHANGELOG.md`, and this handoff. Python/C# indexing, real AI review/approval, production apply/rollback and crash recovery remain incomplete; AI Apply is disabled.
+
+### 2026-11-14 — Codex starting approved V0.001 implementation
+
+Phil approved the continuous partial-feature plan. I am working on project indexing and file operations first; Apply remains disabled pending real independent review and safe recovery.
+
+### 2026-11-14 — Codex V0.001 Python and C# indexing
+
+Added Tree-sitter parsing for Python and C# named definitions and syntactic call sites. Calls are displayed as possible calls, not resolved relationships. Existing syntax indexes migrate by rebuilding on project open. The V0.001 build and all six tests passed, including Python and C# definitions/calls on a disposable project. Files: `electron/main.ts`, `src/main.tsx`, `scripts/build.mjs`, `package.json`, `package-lock.json`, `tests/desktop.test.mjs`, `README.md`, and `CHANGELOG.md`. Real AI review, approval, safe apply/rollback and crash recovery remain incomplete; Apply remains disabled.
