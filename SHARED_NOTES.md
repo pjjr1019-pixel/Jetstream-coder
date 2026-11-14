@@ -277,3 +277,7 @@ Commit review now checks the branch reference as well as the commit and staged t
 ### 2026-11-14 — Codex Git rename handling
 
 Per-file rename diffs include the old and new paths, and unstaging a rename restores both paths in the index without altering working files. Copies do not unstage the original. V0.001 remains the release version.
+
+### 2026-11-14 — Codex scratch cleanup
+
+A failed scratch creation cleans up only the new, exclusively created temporary workspace. Tested using an oversized file in a disposable project; existing workspaces remain intact. V0.001 is unchanged. This handles ordinary creation failures, not process-crash cleanup.

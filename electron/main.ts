@@ -269,8 +269,11 @@ app.whenReady().then(()=>{
    if(existing){try{const b=await fs.stat(existing.base_path),w=await fs.stat(existing.scratch_path);if(!b.isDirectory()||!w.isDirectory())throw new Error()}catch{throw new Error('Scratch workspace is missing or damaged; do not recreate it automatically')}return existing.scratch_path;}
    if(scratchLocks.has(id))throw new Error('Scratch workspace is already being prepared');
    scratchLocks.add(id);
+   const scratchRoot=path.resolve(app.getPath('userData'),'scratch',hash(root));
+   const destination=path.resolve(scratchRoot,`${id}-${crypto.randomUUID()}`);let created=false,registered=false;
    try {
-     const destination=path.join(app.getPath('userData'),'scratch',hash(root),`${id}-${crypto.randomUUID()}`);
+     if(path.dirname(destination)!==scratchRoot)throw new Error('Invalid scratch destination');
+     await fs.mkdir(scratchRoot,{recursive:true});await fs.mkdir(destination);created=true;
      const base=path.join(destination,'base'), scratch=path.join(destination,'work');
      await fs.mkdir(base,{recursive:true});await fs.mkdir(scratch,{recursive:true});
      const manifest:{path:string;fingerprint:string}[]=[]; let totalBytes=0;
@@ -286,7 +289,10 @@ app.whenReady().then(()=>{
      transaction(d,()=>{d.prepare('INSERT INTO pieces (job_id,base_path,scratch_path,manifest) VALUES (?,?,?,?)').run(id,base,scratch,JSON.stringify(manifest));
      d.prepare('INSERT INTO job_events (job_id,kind,detail,created) VALUES (?,?,?,?)').run(id,'scratch_created',`Snapshot of ${manifest.length} files`,new Date().toISOString());
      d.prepare('UPDATE jobs SET status=? WHERE id=?').run('scratch ready; blocked: independent review unavailable',id)});
-     return scratch;
+     registered=true;return scratch;
+   } catch(error) {
+     if(created&&!registered&&path.dirname(destination)===scratchRoot)await fs.rm(destination,{recursive:true,force:true}).catch(()=>{});
+     throw error;
    } finally {scratchLocks.delete(id)}
  });
  ipcMain.handle('jobs:open-scratch',async(_e,id:number)=>{
