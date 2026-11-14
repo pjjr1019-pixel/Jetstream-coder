@@ -301,3 +301,7 @@ Python imports, aliases and wildcard imports now appear in project search. V0.00
 ### 2026-11-14 — Codex C# using index
 
 C# using directives, aliases and static imports are now searchable as syntactic relationships. V0.001 build and all six tests passed, including alias and static cases. Full symbol resolution and production AI Apply remain incomplete.
+
+### 2026-11-14 — Codex local request history
+
+Local proposal and experimental review attempts and errors are recorded. In-flight requests are recorded as interrupted on project reopening; this recovery case was simulated in the desktop tests. V0.001 built and all six tests passed. This does not make proposal review sufficient for production Apply.

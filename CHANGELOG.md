@@ -2,6 +2,10 @@
 
 ## V0.001
 
+- Interrupted local proposal or review requests are recorded when a project reopens.
+
+- Job history records local proposal and experimental review attempts and failures.
+
 - Search indexes C# using directives, including aliases and static imports.
 
 - Search also indexes Python import statements, aliases and wildcard imports.
