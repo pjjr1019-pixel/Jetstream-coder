@@ -112,3 +112,8 @@ Phil requested a clickable version number and a changelog, with the version upda
 ### 2026-11-13 — Git version history
 
 Phil requested local and private GitHub version history. For every completed versioned rebuild, review the changes for credentials and project-only data, commit the source and version/changelog together, create the matching version tag (for example `V0.001`), and push the commit and tag once the GitHub remote and authentication are available. Git saves are not automatic on `npm run build`; do not claim an online copy exists until the push is verified. Preserve existing staged work and do not silently commit unrelated files.
+
+
+### 2026-11-13 — Version policy update
+
+Phil directs that all current rebuilds remain V0.001 until the base is stable and he decides to move to V0.002. `npm run build` no longer increments the version; pending notes are added under the current version. Keep the existing V0.001 Git tag on its original commit; use additional commits for later work within V0.001.

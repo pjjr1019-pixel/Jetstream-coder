@@ -8,11 +8,10 @@ const originalVersion=readFileSync(versionPath,'utf8');const originalLog=readFil
 let success=false;
 try{
  const parsed=JSON.parse(originalVersion.replace(/^\uFEFF/,''));if(!Number.isSafeInteger(parsed.build)||parsed.build<0)throw new Error('Invalid build number');
- const next=parsed.build+1;const label=`V0.${String(next).padStart(3,'0')}`;const notes=pending.trim()||'- Rebuilt; no change notes were supplied.';
+ const label=`V0.${String(parsed.build).padStart(3,'0')}`;const notes=pending.trim();
  const heading='# Jetstream Coder changelog';if(!originalLog.replace(/^\uFEFF/,'').startsWith(heading))throw new Error('Unexpected changelog format');
- const rest=originalLog.replace(/^\uFEFF/,'').slice(heading.length).trimStart();
- writeFileSync(versionPath,JSON.stringify({build:next},null,2)+'\n');
- writeFileSync(logPath,`${heading}\n\n## ${label}\n\n${notes}\n\n${rest}`);
+ const clean=originalLog.replace(/^\uFEFF/,'');const marker=`## ${label}`;
+ if(notes){const at=clean.indexOf(marker);if(at<0)throw new Error(`Missing changelog section ${label}`);const insert=at+marker.length;writeFileSync(logPath,clean.slice(0,insert)+'\n\n'+notes+clean.slice(insert));}
  const run=(script,args)=>{const result=spawnSync(process.execPath,[path.join(root,script),...args],{cwd:root,stdio:'inherit',env:process.env});if(result.error)throw result.error;if(result.status!==0)throw new Error(`${script} failed (${result.status??result.signal})`)};
  run('node_modules/vite/bin/vite.js',['build']);
  run('node_modules/esbuild/bin/esbuild',['electron/main.ts','electron/preload.ts','electron/gate.ts','electron/change-fixture.ts','--bundle','--platform=node','--format=cjs','--external:electron','--external:node-pty','--outdir=dist-electron','--out-extension:.js=.cjs']);
