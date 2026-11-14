@@ -53,13 +53,15 @@ async function read(name:string) {
   return {content:data.toString('utf8'),fingerprint:hash(data)};
 }
 function indexSyntax(target:DatabaseSync,name:string,content:string){
-  target.prepare('DELETE FROM symbols WHERE path=?').run(name);target.prepare('DELETE FROM calls WHERE path=?').run(name);
+  target.prepare('DELETE FROM symbols WHERE path=?').run(name);target.prepare('DELETE FROM calls WHERE path=?').run(name);target.prepare('DELETE FROM imports WHERE path=?').run(name);
   if(!/\.[cm]?[jt]sx?$/i.test(name))return;
   const kind=name.endsWith('x')?(name.match(/\.tsx$/i)?ts.ScriptKind.TSX:ts.ScriptKind.JSX):name.match(/\.[cm]?ts$/i)?ts.ScriptKind.TS:ts.ScriptKind.JS;
   const source=ts.createSourceFile(name,content,ts.ScriptTarget.Latest,true,kind);
   const symbol=target.prepare('INSERT INTO symbols (path,name,kind,line) VALUES (?,?,?,?)');const call=target.prepare('INSERT INTO calls (path,caller,target,line) VALUES (?,?,?,?)');
+  const imported=target.prepare('INSERT INTO imports (path,module,imported,local,line) VALUES (?,?,?,?,?)');
   function visit(node:ts.Node,caller:string){
     let scope=caller;
+    if(ts.isImportDeclaration(node)&&ts.isStringLiteral(node.moduleSpecifier)){const module=node.moduleSpecifier.text,line=source.getLineAndCharacterOfPosition(node.getStart(source)).line+1,clause=node.importClause;if(!clause)imported.run(name,module,'(side effect)','',line);else{if(clause.name)imported.run(name,module,'default',clause.name.text,line);const bindings=clause.namedBindings;if(bindings&&ts.isNamespaceImport(bindings))imported.run(name,module,'*',bindings.name.text,line);else if(bindings&&ts.isNamedImports(bindings))for(const item of bindings.elements)imported.run(name,module,item.propertyName?.text||item.name.text,item.name.text,line)}}
     if((ts.isFunctionDeclaration(node)||ts.isClassDeclaration(node)||ts.isInterfaceDeclaration(node)||ts.isTypeAliasDeclaration(node)||ts.isMethodDeclaration(node))&&node.name){
       const title=node.name.getText(source);const label=ts.SyntaxKind[node.kind];symbol.run(name,title,label,source.getLineAndCharacterOfPosition(node.getStart(source)).line+1);if(ts.isFunctionDeclaration(node)||ts.isMethodDeclaration(node))scope=title;
     }
@@ -85,7 +87,7 @@ async function indexOtherSyntax(target:DatabaseSync,name:string,content:string){
 }
 async function rebuildIndexWork(expected=generation,force=false) {
   const target=db; if(!target || !project) return;
-  if(force){target.exec('DELETE FROM file_index; DELETE FROM syntax_indexed; DELETE FROM symbols; DELETE FROM calls')};
+  if(force){target.exec('DELETE FROM file_index; DELETE FROM syntax_indexed; DELETE FROM symbols; DELETE FROM calls; DELETE FROM imports')};
   const names=await files(); if(expected!==generation) return;
   const seen=new Set<string>();let skipped=0;
   for(const name of names) {
@@ -96,7 +98,7 @@ async function rebuildIndexWork(expected=generation,force=false) {
   }
   if(expected!==generation) return;
   const rows=target.prepare('SELECT path FROM file_index').all() as {path:string}[];
-  for(const row of rows) if(!seen.has(row.path)){target.prepare('DELETE FROM file_index WHERE path=?').run(row.path);target.prepare('DELETE FROM syntax_indexed WHERE path=?').run(row.path);target.prepare('DELETE FROM symbols WHERE path=?').run(row.path);target.prepare('DELETE FROM calls WHERE path=?').run(row.path);}
+  for(const row of rows) if(!seen.has(row.path)){target.prepare('DELETE FROM file_index WHERE path=?').run(row.path);target.prepare('DELETE FROM syntax_indexed WHERE path=?').run(row.path);target.prepare('DELETE FROM symbols WHERE path=?').run(row.path);target.prepare('DELETE FROM calls WHERE path=?').run(row.path);target.prepare('DELETE FROM imports WHERE path=?').run(row.path);}
   indexState={status:'ready',message:skipped?`${skipped} files skipped (unreadable, binary, or over the size limit)`:'Index is current',indexed:seen.size,skipped};
 }
 function rebuildIndex(expected=generation,force=false):Promise<void>{
@@ -128,10 +130,11 @@ app.whenReady().then(()=>{
   const dataDir=path.join(app.getPath('userData'),'projects'); await fs.mkdir(dataDir,{recursive:true});
   const next=new DatabaseSync(path.join(dataDir,hash(selected)+'.sqlite'));
   next.exec("CREATE TABLE IF NOT EXISTS jobs (id INTEGER PRIMARY KEY, request TEXT NOT NULL, status TEXT NOT NULL, created TEXT NOT NULL); CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL); CREATE TABLE IF NOT EXISTS file_index (path TEXT PRIMARY KEY, content TEXT NOT NULL, fingerprint TEXT NOT NULL); CREATE TABLE IF NOT EXISTS job_events (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, kind TEXT NOT NULL, detail TEXT NOT NULL, created TEXT NOT NULL); CREATE TABLE IF NOT EXISTS pieces (job_id INTEGER PRIMARY KEY, base_path TEXT NOT NULL, scratch_path TEXT NOT NULL, manifest TEXT NOT NULL); CREATE TABLE IF NOT EXISTS syntax_indexed (path TEXT PRIMARY KEY, fingerprint TEXT NOT NULL); CREATE TABLE IF NOT EXISTS symbols (path TEXT NOT NULL, name TEXT NOT NULL, kind TEXT NOT NULL, line INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS calls (path TEXT NOT NULL, caller TEXT NOT NULL, target TEXT NOT NULL, line INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS reviews (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, snapshot TEXT NOT NULL, author_model TEXT NOT NULL, reviewer_model TEXT NOT NULL, approved INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS approvals (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, snapshot TEXT NOT NULL, check_id INTEGER NOT NULL, review_id INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS verification_runs (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, before_hash TEXT NOT NULL, after_hash TEXT NOT NULL, build_command TEXT NOT NULL, test_command TEXT NOT NULL, results TEXT NOT NULL, valid INTEGER NOT NULL, created TEXT NOT NULL)");
+  next.exec("CREATE TABLE IF NOT EXISTS imports (path TEXT NOT NULL, module TEXT NOT NULL, imported TEXT NOT NULL, local TEXT NOT NULL, line INTEGER NOT NULL)");
   next.exec("CREATE TABLE IF NOT EXISTS scratch_preparations (job_id INTEGER PRIMARY KEY, path TEXT NOT NULL, created TEXT NOT NULL)");
   next.exec("CREATE TABLE IF NOT EXISTS local_proposals (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, path TEXT NOT NULL, model TEXT NOT NULL, digest TEXT NOT NULL, source_hash TEXT NOT NULL, source_content TEXT NOT NULL, proposed_content TEXT NOT NULL, explanation TEXT NOT NULL, created TEXT NOT NULL); CREATE TABLE IF NOT EXISTS local_proposal_reviews (id INTEGER PRIMARY KEY, proposal_id INTEGER NOT NULL, model TEXT NOT NULL, digest TEXT NOT NULL, verdict TEXT NOT NULL, findings TEXT NOT NULL, created TEXT NOT NULL)");
   for(const table of ['reviews','approvals']){const cols=next.prepare(`PRAGMA table_info(${table})`).all() as {name:string}[];if(!cols.some(c=>c.name==='base_hash'))next.exec(`ALTER TABLE ${table} ADD COLUMN base_hash TEXT NOT NULL DEFAULT ''`);}
-  if(next.prepare("SELECT value FROM settings WHERE key='syntax_version'").get()?.value!=='2'){next.exec("DELETE FROM syntax_indexed; INSERT INTO settings(key,value) VALUES ('syntax_version','2') ON CONFLICT(key) DO UPDATE SET value='2'")};
+  if(next.prepare("SELECT value FROM settings WHERE key='syntax_version'").get()?.value!=='3'){next.exec("DELETE FROM syntax_indexed; INSERT INTO settings(key,value) VALUES ('syntax_version','3') ON CONFLICT(key) DO UPDATE SET value='3'")};
   transaction(next,()=>{const interrupted=next.prepare("SELECT id FROM jobs WHERE status='checks running; apply blocked'").all() as {id:number}[];for(const job of interrupted){next.prepare('UPDATE verification_runs SET valid=0 WHERE job_id=?').run(job.id);next.prepare('UPDATE jobs SET status=? WHERE id=?').run('verification interrupted; retry required',job.id);next.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(job.id,'verification_interrupted','Application closed or project changed before verification completed',new Date().toISOString())}});
   transaction(next,()=>{const interrupted=next.prepare('SELECT job_id,path FROM scratch_preparations').all() as {job_id:number;path:string}[];for(const item of interrupted){next.prepare('UPDATE jobs SET status=? WHERE id=?').run('scratch preparation interrupted; retry required',item.job_id);next.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(item.job_id,'scratch_interrupted',`Scratch preparation stopped; incomplete files may remain at ${item.path}`,new Date().toISOString())}next.prepare('DELETE FROM scratch_preparations').run()});
   db?.close();db=next;project=selected; await rebuildIndex(); startWatcher(); return project;
@@ -171,10 +174,11 @@ app.whenReady().then(()=>{
    return found;
  });
  ipcMain.handle('project:symbols',async(_e,query:string)=>{
-   if(typeof query!=='string'||!query.trim()||query.length>200)return {symbols:[],calls:[]};await rebuildIndex();const q=`%${query.replace(/[\\%_]/g,'\\$&')}%`;
+   if(typeof query!=='string'||!query.trim()||query.length>200)return {symbols:[],calls:[],imports:[]};await rebuildIndex();const q=`%${query.replace(/[\\%_]/g,'\\$&')}%`;
    const symbols=database().prepare("SELECT path,name,kind,line FROM symbols WHERE name LIKE ? ESCAPE '\\' LIMIT 100").all(q);
    const calls=database().prepare("SELECT path,caller,target,line FROM calls WHERE target LIKE ? ESCAPE '\\' LIMIT 100").all(q);
-   return {symbols,calls};
+   const imports=database().prepare("SELECT path,module,imported,local,line FROM imports WHERE module LIKE ? ESCAPE '\\' OR imported LIKE ? ESCAPE '\\' OR local LIKE ? ESCAPE '\\' LIMIT 100").all(q,q,q);
+   return {symbols,calls,imports};
  });
  ipcMain.handle('terminal:start',()=>{
    if(!project)throw new Error('Open a project first');

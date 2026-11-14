@@ -289,3 +289,7 @@ Scratch preparation is recorded before copying. Reopening a project records inte
 ### 2026-11-14 — Codex actual scratch interruption test
 
 The optional `scripts/verify-scratch-crash.mjs` test held a disposable scratch copy and forced the test Electron main process to exit. Reopening the same project reported interrupted scratch preparation. This does not test production Apply or rollback crash recovery.
+
+### 2026-11-14 — Codex import index
+
+Search indexes JavaScript/TypeScript static import declarations, including module names, aliases, default, namespace and side-effect imports. Updates and deletions rebuild the records. Build V0.001 and all six tests passed, including alias/update/deletion checks. These are syntactic relationships; full symbol resolution is not implemented.

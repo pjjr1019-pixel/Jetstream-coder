@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Search now indexes JavaScript and TypeScript import declarations, including aliases and source modules, and updates them when files change.
+
 - Local proposal review rejects the author model name even if its installed digest has changed.
 
 - Interrupted scratch preparation is recorded on project reopening, with the incomplete path retained for inspection.
