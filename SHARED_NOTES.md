@@ -293,3 +293,7 @@ The optional `scripts/verify-scratch-crash.mjs` test held a disposable scratch c
 ### 2026-11-14 — Codex import index
 
 Search indexes JavaScript/TypeScript static import declarations, including module names, aliases, default, namespace and side-effect imports. Updates and deletions rebuild the records. Build V0.001 and all six tests passed, including alias/update/deletion checks. These are syntactic relationships; full symbol resolution is not implemented.
+
+### 2026-11-14 — Codex Python import index
+
+Python imports, aliases and wildcard imports now appear in project search. V0.001 built and all six tests passed, including import alias and wildcard checks. These are syntax records, not resolved references.
