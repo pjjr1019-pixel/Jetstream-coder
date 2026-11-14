@@ -309,3 +309,7 @@ Local proposal and experimental review attempts and errors are recorded. In-flig
 ### 2026-11-14 — Codex local usage display
 
 The Usage panel shows input/output tokens reported by Ollama for successful local proposal and review requests, and counts attempts without complete reported usage as unknown. Manual chat is not included. Cloud usage and reserves remain unknown; no cloud routing is enabled. V0.001 and all six tests pass.
+
+### 2026-11-14 — Codex paused and detailed handoff
+
+Phil requested a pause and a detailed handoff. See `HANDOFF.md` in the project root. Two diagnostic changes are deliberately uncommitted: `electron/main.ts` and `scripts/verify-local-proposal.mjs`. The current real-model test has an intermittent project-generation/epoch failure that remains under investigation; the last build succeeded at V0.001, and the last complete automated suite before the diagnostic wording edits passed six tests. Production Apply remains disabled.
