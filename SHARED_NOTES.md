@@ -297,3 +297,7 @@ Search indexes JavaScript/TypeScript static import declarations, including modul
 ### 2026-11-14 — Codex Python import index
 
 Python imports, aliases and wildcard imports now appear in project search. V0.001 built and all six tests passed, including import alias and wildcard checks. These are syntax records, not resolved references.
+
+### 2026-11-14 — Codex C# using index
+
+C# using directives, aliases and static imports are now searchable as syntactic relationships. V0.001 build and all six tests passed, including alias and static cases. Full symbol resolution and production AI Apply remain incomplete.

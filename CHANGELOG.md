@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Search indexes C# using directives, including aliases and static imports.
+
 - Search also indexes Python import statements, aliases and wildcard imports.
 
 - Search now indexes JavaScript and TypeScript import declarations, including aliases and source modules, and updates them when files change.
