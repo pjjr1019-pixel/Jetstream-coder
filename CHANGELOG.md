@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Local proposal review rejects the author model name even if its installed digest has changed.
+
 - Interrupted scratch preparation is recorded on project reopening, with the incomplete path retained for inspection.
 
 - Failed scratch creation removes its own incomplete temporary workspace instead of leaving an orphan.
