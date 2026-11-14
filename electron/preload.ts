@@ -51,6 +51,7 @@ contextBridge.exposeInMainWorld('coder', {
   verifyJob: (id:number,candidateId?:number) => ipcRenderer.invoke('verification:run',id,candidateId),
   jobGate: (id:number) => ipcRenderer.invoke('jobs:gate',id),
   jobHistory: (id:number) => ipcRenderer.invoke('jobs:history',id),
+  jobReceipt: (id:number) => ipcRenderer.invoke('jobs:receipt',id),
   setPause: (paused:boolean) => ipcRenderer.invoke('jobs:pause',paused),
   localUsage: () => ipcRenderer.invoke('providers:local-usage'),
   askLocal: (model:string,prompt:string) => ipcRenderer.invoke('ollama:ask',model,prompt),

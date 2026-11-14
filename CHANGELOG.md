@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Job reports show candidate review, checks, current approval, checkpoint status and unavailable Apply.
+
 - Approved candidates can prepare and inspect a checkpoint; project Apply remains unavailable.
 
 - Candidate evidence supports editing or rejecting a candidate; rejected candidates cannot be approved.
