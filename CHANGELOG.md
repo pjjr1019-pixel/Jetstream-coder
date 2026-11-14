@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Usage shows local proposal and review token counts reported by Ollama and labels unreported or interrupted attempts unknown.
+
 - Interrupted local proposal or review requests are recorded when a project reopens.
 
 - Job history records local proposal and experimental review attempts and failures.

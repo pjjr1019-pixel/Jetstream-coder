@@ -44,6 +44,7 @@ contextBridge.exposeInMainWorld('coder', {
   jobGate: (id:number) => ipcRenderer.invoke('jobs:gate',id),
   jobHistory: (id:number) => ipcRenderer.invoke('jobs:history',id),
   setPause: (paused:boolean) => ipcRenderer.invoke('jobs:pause',paused),
+  localUsage: () => ipcRenderer.invoke('providers:local-usage'),
   askLocal: (model:string,prompt:string) => ipcRenderer.invoke('ollama:ask',model,prompt),
   proposeLocal: (id:number,model:string,name:string) => ipcRenderer.invoke('ollama:propose',id,model,name),
   latestProposal: (id:number) => ipcRenderer.invoke('ollama:latest-proposal',id),

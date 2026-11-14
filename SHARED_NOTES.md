@@ -305,3 +305,7 @@ C# using directives, aliases and static imports are now searchable as syntactic 
 ### 2026-11-14 — Codex local request history
 
 Local proposal and experimental review attempts and errors are recorded. In-flight requests are recorded as interrupted on project reopening; this recovery case was simulated in the desktop tests. V0.001 built and all six tests passed. This does not make proposal review sufficient for production Apply.
+
+### 2026-11-14 — Codex local usage display
+
+The Usage panel shows input/output tokens reported by Ollama for successful local proposal and review requests, and counts attempts without complete reported usage as unknown. Manual chat is not included. Cloud usage and reserves remain unknown; no cloud routing is enabled. V0.001 and all six tests pass.
