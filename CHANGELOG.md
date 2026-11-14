@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Checkpoint inspection identifies interrupted operations requiring recovery inspection.
+
 - Existing candidate checkpoints can be inspected after reopening a project.
 
 - Job reports show candidate review, checks, current approval, checkpoint status and unavailable Apply.
