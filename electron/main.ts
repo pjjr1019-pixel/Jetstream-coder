@@ -390,7 +390,7 @@ app.whenReady().then(()=>{
    if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid job');const d=database(),expected=generation;
    const piece=d.prepare('SELECT scratch_path,base_path,manifest FROM pieces WHERE job_id=?').get(id) as {scratch_path:string;base_path:string;manifest:string}|undefined;if(!piece)throw new Error('Prepare scratch first');
    const snapshot=await fingerprintTree(piece.scratch_path);const baseSnapshot=await fingerprintTree(piece.base_path);const original=JSON.parse(piece.manifest) as {path:string;fingerprint:string}[];const originalHash=fingerprintManifest(original.map(x=>({name:x.path.split(path.sep).join('/'),hash:x.fingerprint}))); if(expected!==generation)throw new Error('Project changed during gate check');
-   const run=d.prepare('SELECT * FROM verification_runs WHERE job_id=? ORDER BY id DESC LIMIT 1').get(id) as {id:number;after_hash:string;valid:number;build_command:string;test_command:string}|undefined;
+   const run=d.prepare('SELECT * FROM verification_runs WHERE job_id=? AND candidate_id IS NULL ORDER BY id DESC LIMIT 1').get(id) as {id:number;after_hash:string;valid:number;build_command:string;test_command:string}|undefined;
    const get=(key:string)=>String(d.prepare('SELECT value FROM settings WHERE key=?').get(key)?.value||'');
    const review=d.prepare('SELECT * FROM reviews WHERE job_id=? ORDER BY id DESC LIMIT 1').get(id) as {id:number;snapshot:string;author_model:string;reviewer_model:string;approved:number;base_hash:string}|undefined;
    const approval=d.prepare('SELECT * FROM approvals WHERE job_id=? ORDER BY id DESC LIMIT 1').get(id) as {snapshot:string;check_id:number;review_id:number;base_hash:string}|undefined;
