@@ -147,6 +147,7 @@ app.whenReady().then(()=>{
    try {const result=await execFileAsync('powershell.exe',['-NoLogo','-NoProfile','-NonInteractive','-Command',command],{cwd:project,timeout:120000,maxBuffer:2_000_000,windowsHide:true});return {output:result.stdout+result.stderr,exit:0};}
    catch(e){const err=e as Error & {stdout?:string;stderr?:string;code?:number|string;killed?:boolean};return {output:(err.stdout||'')+(err.stderr||'')+(err.killed?'\nCommand timed out.':''),exit:typeof err.code==='number'?err.code:-1};}
  });
+ ipcMain.handle('project:git-diff',async()=>{if(!project)throw new Error('Open a project first');try{const result=await execFileAsync('git',['-c','core.pager=cat','diff','--no-ext-diff','--no-textconv','--'],{cwd:project,timeout:10000,maxBuffer:2_000_000,windowsHide:true});const staged=await execFileAsync('git',['-c','core.pager=cat','diff','--cached','--no-ext-diff','--no-textconv','--'],{cwd:project,timeout:10000,maxBuffer:2_000_000,windowsHide:true});return `STAGED CHANGES\n${staged.stdout||'(none)'}\nUNSTAGED CHANGES\n${result.stdout||'(none)'}`;}catch{throw new Error('Git diff unavailable for this folder')}});
  ipcMain.handle('project:git',async()=>{if(!project) return '';try{return (await execFileAsync('git',['status','--short','--branch'],{cwd:project,timeout:10000,maxBuffer:1_000_000})).stdout;}catch{return 'Git status unavailable for this folder.';}});
  ipcMain.handle('jobs:list',()=>({jobs:database().prepare('SELECT * FROM jobs ORDER BY id DESC').all(),paused:database().prepare("SELECT value FROM settings WHERE key='paused'").get()?.value==='true'}));
  ipcMain.handle('jobs:add',(_e,request:string)=>{if(typeof request!=='string'||!request.trim()||request.length>10000)throw new Error('Enter a job under 10,000 characters');const d=database(); transaction(d,()=>{const result=d.prepare('INSERT INTO jobs (request,status,created) VALUES (?,?,?)').run(request.trim(),'blocked: coordinator unavailable',new Date().toISOString());d.prepare('INSERT INTO job_events (job_id,kind,detail,created) VALUES (?,?,?,?)').run(Number(result.lastInsertRowid),'requested',request.trim(),new Date().toISOString())});return true;});
@@ -155,8 +156,8 @@ app.whenReady().then(()=>{
    if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid job');
    const d=database(), expected=generation, root=project;
    if(!d.prepare('SELECT id FROM jobs WHERE id=?').get(id))throw new Error('Job not found');
-   const existing=d.prepare('SELECT scratch_path FROM pieces WHERE job_id=?').get(id) as {scratch_path:string}|undefined;
-   if(existing)return existing.scratch_path;
+   const existing=d.prepare('SELECT scratch_path,base_path FROM pieces WHERE job_id=?').get(id) as {scratch_path:string;base_path:string}|undefined;
+   if(existing){try{const b=await fs.stat(existing.base_path),w=await fs.stat(existing.scratch_path);if(!b.isDirectory()||!w.isDirectory())throw new Error()}catch{throw new Error('Scratch workspace is missing or damaged; do not recreate it automatically')}return existing.scratch_path;}
    if(scratchLocks.has(id))throw new Error('Scratch workspace is already being prepared');
    scratchLocks.add(id);
    try {
@@ -171,6 +172,8 @@ app.whenReady().then(()=>{
        manifest.push({path:name,fingerprint:hash(bytes)});
      }
      if(expected!==generation)throw new Error('Project changed while preparing scratch');
+     const finalNames=await files();const snapshotNames=manifest.map(x=>x.path).sort((a,b)=>a.localeCompare(b));if(finalNames.length!==snapshotNames.length||finalNames.some((n,i)=>n!==snapshotNames[i]))throw new Error('Project files changed while preparing scratch; retry');
+     for(const item of manifest){if(expected!==generation||hash(await fs.readFile(await checked(item.path)))!==item.fingerprint)throw new Error('Project files changed while preparing scratch; retry')}
      transaction(d,()=>{d.prepare('INSERT INTO pieces (job_id,base_path,scratch_path,manifest) VALUES (?,?,?,?)').run(id,base,scratch,JSON.stringify(manifest));
      d.prepare('INSERT INTO job_events (job_id,kind,detail,created) VALUES (?,?,?,?)').run(id,'scratch_created',`Snapshot of ${manifest.length} files`,new Date().toISOString());
      d.prepare('UPDATE jobs SET status=? WHERE id=?').run('scratch ready; blocked: independent review unavailable',id)});
@@ -189,10 +192,12 @@ app.whenReady().then(()=>{
  });
  ipcMain.handle('jobs:conflicts',async(_e,id:number)=>{
    if(!Number.isSafeInteger(id))throw new Error('Invalid job');const expected=generation;
-   const row=database().prepare('SELECT manifest FROM pieces WHERE job_id=?').get(id) as {manifest:string}|undefined;if(!row)throw new Error('Prepare scratch first');
+   const row=database().prepare('SELECT manifest,scratch_path FROM pieces WHERE job_id=?').get(id) as {manifest:string;scratch_path:string}|undefined;if(!row)throw new Error('Prepare scratch first');
    const manifest=JSON.parse(row.manifest) as {path:string;fingerprint:string}[];const conflicts:string[]=[];
    for(const item of manifest){if(expected!==generation)throw new Error('Project changed during conflict check');try{const file=await checked(item.path);if(hash(await fs.readFile(file))!==item.fingerprint)conflicts.push(item.path);}catch{conflicts.push(item.path)}}
-   return conflicts;
+   const baseline=new Set(manifest.map(x=>x.path));
+   async function additions(dir:string){for(const ent of await fs.readdir(dir,{withFileTypes:true})){if(ent.isSymbolicLink())throw new Error('Scratch contains a symbolic link');const full=path.join(dir,ent.name);if(ent.isDirectory())await additions(full);else if(ent.isFile()){const rel=path.relative(row!.scratch_path,full);if(!baseline.has(rel)){try{await fs.lstat(path.join(project,rel));conflicts.push(rel)}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error}}}}}
+   await additions(row.scratch_path);return [...new Set(conflicts)].sort();
  });
  ipcMain.handle('verification:config',()=>{
    const d=database(); const get=(key:string)=>String(d.prepare('SELECT value FROM settings WHERE key=?').get(key)?.value||'');

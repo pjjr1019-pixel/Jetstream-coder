@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Added source-control diff inspection and improved scratch snapshot and new-file conflict checks.
+
 - Added a Reload button with a warning before discarding unsaved edits.
 
 - Hardened verification: native command failures fail checks, and previous passing evidence is invalidated when checks restart or commands change.

@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('coder', {
   onTerminalExit: (cb:(code:number)=>void) => {const f=(_event:Electron.IpcRendererEvent,code:number)=>cb(code);ipcRenderer.on('terminal:exit',f);return ()=>ipcRenderer.removeListener('terminal:exit',f)},
   terminalRun: (command:string) => ipcRenderer.invoke('terminal:run',command),
   onProjectChanged: (cb:()=>void) => ipcRenderer.on('project:changed',cb),
+  gitDiff: () => ipcRenderer.invoke('project:git-diff'),
   gitStatus: () => ipcRenderer.invoke('project:git'),
   jobs: () => ipcRenderer.invoke('jobs:list'),
   addJob: (request:string) => ipcRenderer.invoke('jobs:add',request),

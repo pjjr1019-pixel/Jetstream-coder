@@ -131,3 +131,15 @@ Phil requested completion of partially implemented features, keeping V0.001 unti
 **Verification:** V0.001 build passed; all six tests passed, including native exit code 7, stale evidence during a running check, and reloading after an external file change.
 
 **Still incomplete:** Independent reviewer, trusted review and approval, production apply and rollback, durable crash recovery, complete indexing and source-control features, model job execution, Muse and the app switcher. Apply remains disabled. Keep all builds at V0.001 until Phil decides the base is stable.
+
+### 2026-11-13 — Codex continuing V0.001
+
+Phil requested that work continue on all partially implemented features. I am working on scratch consistency, conflict detection, and source-control inspection. Real AI Apply remains disabled until independent review and recovery are verified.
+
+### 2026-11-13 — Codex V0.001 scratch and Git progress
+
+**Completed:** Scratch creation checks for project file changes during snapshot preparation and refuses to silently recreate missing scratch. Conflict inspection now catches a new scratch file colliding with a project file. The Source panel can inspect staged and unstaged Git diffs. These checks reduce risks but are not a lock against concurrent external edits.
+
+**Checks:** V0.001 build and all six tests passed, including the new-file collision and Git diff panel on a disposable repository. Real Apply remains disabled; no real reviewer or production rollback is connected.
+
+**Remaining:** Finish independent review and approval, production safe apply and crash recovery, broader indexing and source-control operations, local-model job execution, Muse and app-switcher integration. Keep V0.001 until Phil decides the base is stable.
