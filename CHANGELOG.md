@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Added creation of new files within the open project without overwriting existing files.
+
 - Added a staged-change review and commit flow for the open Git repository.
 
 - Cancelled jobs can be requeued while retaining their history; checks must be repeated.

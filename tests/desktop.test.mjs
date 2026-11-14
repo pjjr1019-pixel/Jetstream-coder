@@ -14,6 +14,9 @@ test('desktop opens a project, saves edits, blocks stale saves, and records bloc
   app=await electron.launch({args:['.',`--user-data-dir=${data}`]});
   await app.evaluate(({dialog},folder)=>{dialog.showOpenDialog=async()=>({canceled:false,filePaths:[folder]})},dir);
   const win=await app.firstWindow(); win.setDefaultTimeout(5000); await win.getByRole('button',{name:'Open changelog'}).click(); await win.getByRole('dialog',{name:'Changelog'}).getByText(/## V0\.\d+/).waitFor(); await win.getByRole('button',{name:'Close changelog'}).click(); win.on('dialog', dialog=>dialog.accept()); await win.getByRole('button',{name:'Open a project'}).click();
+  await win.getByLabel('New file path').fill('new-file.txt'); await win.getByRole('button',{name:'Create',exact:true}).click(); await win.locator('.tab').getByText('new-file.txt').waitFor(); assert.equal(await readFile(path.join(dir,'new-file.txt'),'utf8'),'');
+  await assert.rejects(win.evaluate(()=>window.coder.createFile('sample.txt')),/EEXIST/i); assert.equal(await readFile(file,'utf8'),'original');
+  await assert.rejects(win.evaluate(()=>window.coder.createFile('../escape.txt')),/Invalid/); await assert.rejects(win.evaluate(()=>window.coder.createFile('CON.txt')),/Invalid/); await assert.rejects(win.evaluate(()=>window.coder.createFile('missing/f.txt')),/ENOENT/);
   await win.locator('.file').filter({hasText:'sample.txt'}).click({timeout:5000}); await win.locator('.view-lines').getByText('original').waitFor();
   await win.locator('.view-lines').click(); await win.keyboard.press('Control+A'); await win.keyboard.insertText('edited');
   await win.getByRole('button',{name:'Save',exact:true}).click(); await win.waitForTimeout(300); assert.equal(await readFile(file,'utf8'),'edited');

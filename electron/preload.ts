@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld('coder', {
   getIgnorePatterns: () => ipcRenderer.invoke('project:ignore-get'),
   setIgnorePatterns: (patterns:string) => ipcRenderer.invoke('project:ignore-set',patterns),
   listFiles: () => ipcRenderer.invoke('project:files'),
+  createFile: (name:string) => ipcRenderer.invoke('project:create-file',name),
   readFile: (name:string) => ipcRenderer.invoke('project:read',name),
   saveFile: (name:string, content:string, fingerprint:string) => ipcRenderer.invoke('project:save',name,content,fingerprint),
   searchSymbols: (query:string) => ipcRenderer.invoke('project:symbols',query),

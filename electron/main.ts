@@ -117,6 +117,12 @@ app.whenReady().then(()=>{
    await rebuildIndex(expected);if(expected!==generation)throw new Error('Project changed');if(!win.isDestroyed())win.webContents.send('project:changed');
  });
  ipcMain.handle('project:files',files);
+ ipcMain.handle('project:create-file',async(_e,name:string)=>{
+   if(typeof name!=='string'||!name||name.length>1000||path.isAbsolute(name))throw new Error('Enter a relative project file path');
+   const parts=name.replace(/\\/g,'/').split('/');if(parts.some(x=>!x||x==='.'||x==='..'||/[<>:"|?*\x00-\x1f]/.test(x)||/[. ]$/.test(x)||/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\.|$)/i.test(x)))throw new Error('Invalid file path');
+   const root=project,expected=generation;if(!root)throw new Error('Open a project first');const parentName=parts.slice(0,-1).join(path.sep)||'.';const parent=await checked(parentName);const stat=await fs.stat(parent);if(!stat.isDirectory())throw new Error('Parent folder does not exist');
+   if(expected!==generation)throw new Error('Project changed');const target=path.join(parent,parts.at(-1)!);const file=await fs.open(target,'wx');await file.close();return parts.join(path.sep);
+ });
  ipcMain.handle('project:read',(_e,name:string)=>read(name));
  ipcMain.handle('project:save',async(_e,name:string,content:string,fingerprint:string)=>{
    if(typeof content!=='string'||content.length>2_000_000) throw new Error('Invalid file contents');

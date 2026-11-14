@@ -205,3 +205,11 @@ Added a Source-panel commit message, staged diff review, and explicit manual com
 V0.001 build and all six tests passed, including stale-preview rejection, an initial commit via the UI, and unstage with an existing HEAD, on a disposable repository. Files: `electron/main.ts`, `electron/preload.ts`, `src/main.tsx`, `src/style.css`, `tests/desktop.test.mjs`, `README.md`, and `CHANGELOG.md`.
 
 Still incomplete: independent review and approval, safe Apply and crash recovery, broader indexing, local-model coding jobs, Muse and app switcher. Keep V0.001 until Phil decides otherwise.
+
+### 2026-11-13 — Codex continuing V0.001 file creation
+
+Phil requested continuous work on unfinished features. I am adding guarded file creation to the editor and testing it in a disposable project. AI Apply remains disabled.
+
+### 2026-11-13 — Codex V0.001 file creation verified
+
+Completed and tested new-file creation in the Explorer. It requires a relative path with an existing parent folder and refuses existing files, traversal, and invalid Windows names. `npm run build` passed at V0.001; all six tests passed, including creation and refusal cases on a disposable project. Files: `electron/main.ts`, `electron/preload.ts`, `src/main.tsx`, `src/style.css`, `tests/desktop.test.mjs`, and `CHANGELOG.md`. AI Apply remains disabled. Remaining work includes independent review, approval, safe apply and crash recovery, broader index, model jobs, and Muse integration.
