@@ -261,3 +261,11 @@ Starting with editor folder creation and index/project-switch correctness. Conti
 ### 2026-11-14 — Codex V0.001 editor, Git and recovery progress
 
 Added guarded folder creation, read-only Git history and branch inspection, waited for active indexing before closing a project's database, and recorded interrupted verification transactionally on project reopening. V0.001 build and all six tests passed, including folder validation, history lookup and reopening during verification on a disposable project. This does not prove process-crash recovery. Files: `electron/main.ts`, `electron/preload.ts`, `src/main.tsx`, `tests/desktop.test.mjs`, `CHANGELOG.md`, and this handoff. The approved plan is still incomplete; real independent review, approval, safe Apply and rollback remain disabled.
+
+### 2026-11-14 — Codex continuing approved V0.001 implementation
+
+Phil requested sustained work on the approved partially implemented features. I am adding per-file Git inspection and deleted-file staging while retaining the AI Apply block.
+
+### 2026-11-14 — Codex local proposal and Git progress
+
+Per-file Git status, diff, deletion staging and unstaging are implemented. Local Ollama can generate a bounded single-file proposal from a selected scratch file, store the proposal in project history, and request experimental feedback from a model with a different digest. Reopening preserves the proposal. A disposable real-model run using qwen3.5:4b and qwen3.5:9b passed; neither scratch nor project was changed. This is not the final independent review of a scratch change and does not unlock Apply. Safe application, conflict and crash recovery, approval, and verified coordinator remain incomplete. Keep V0.001.

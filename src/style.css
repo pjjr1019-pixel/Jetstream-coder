@@ -19,3 +19,5 @@ footer .version{margin-left:auto;border:0;background:transparent;color:#dce9ff;c
 .commit-form{padding:12px;display:grid;gap:6px}.commit-form button,.commit-actions button{background:#27344b;border:1px solid #394b67;border-radius:4px;padding:6px}.commit-summary{padding:0 20px;color:#abc5f9}.commit-actions{display:flex;gap:8px;padding:12px 20px}
 
 .new-file{display:flex;gap:4px;padding:0 10px 8px}.new-file input{flex:1}.new-file button{background:#27344b;border:1px solid #394b67;border-radius:4px;padding:5px 8px}
+
+.git-changes{padding:8px 12px}.git-changes div{padding:8px 0;border-bottom:1px solid #303746;overflow-wrap:anywhere}.git-changes strong{display:block}.git-changes button{margin:5px 5px 0 0;background:#27344b;border:1px solid #394b67;border-radius:4px;padding:4px 7px}

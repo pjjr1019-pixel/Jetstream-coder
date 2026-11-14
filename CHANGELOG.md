@@ -2,6 +2,15 @@
 
 ## V0.001
 
+- Added per-file Git change inspection and tracked-deletion stage/unstage.
+- Added recoverable single-file local scratch proposals and experimental review by a model with a different digest; project Apply remains unavailable.
+
+- Untracked project files can be previewed from Git status while excluded files remain hidden.
+
+- Added per-file Git status and diff inspection, including staging and unstaging tracked deletions.
+
+- Added per-file Git status and diff inspection, including staging tracked deletions.
+
 - Interrupted verification is recorded in job history on project recovery.
 
 - Added Git history and branch inspection.
