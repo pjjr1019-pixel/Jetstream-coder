@@ -1,0 +1,20 @@
+node_modules/
+dist/
+dist-electron/
+*.log
+
+.build-version.lock
+
+# Local credentials and project-specific data
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.sqlite
+*.sqlite3
+*.db
+.agents/
+.codex/
+.aws/

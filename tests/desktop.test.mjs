@@ -1,0 +1,49 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { _electron as electron } from 'playwright-core';
+import { mkdtemp, writeFile, readFile, rm, mkdir } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+
+test('desktop opens a project, saves edits, blocks stale saves, and records blocked jobs', {timeout:60000}, async () => {
+ const dir=await mkdtemp(path.join(os.tmpdir(),'jetstream-coder-test-')); const data=await mkdtemp(path.join(os.tmpdir(),'jetstream-coder-data-')); const file=path.join(dir,'sample.txt'); await writeFile(file,'original'); await writeFile(path.join(dir,'.gitignore'),'private.txt\n'); await writeFile(path.join(dir,'private.txt'),'private-value'); await writeFile(path.join(dir,'.env'),'secret-value'); await mkdir(path.join(dir,'nested')); await writeFile(path.join(dir,'nested','.gitignore'),'ignored.txt\n'); await writeFile(path.join(dir,'nested','ignored.txt'),'nested-secret'); await writeFile(path.join(dir,'source.ts'),'function greet() { return 1; }\nfunction caller() { return greet(); }');
+ let app;
+ try {
+  app=await electron.launch({args:['.',`--user-data-dir=${data}`]});
+  await app.evaluate(({dialog},folder)=>{dialog.showOpenDialog=async()=>({canceled:false,filePaths:[folder]})},dir);
+  const win=await app.firstWindow(); win.setDefaultTimeout(5000); await win.getByRole('button',{name:'Open changelog'}).click(); await win.getByRole('dialog',{name:'Changelog'}).getByText(/## V0\.\d+/).waitFor(); await win.getByRole('button',{name:'Close changelog'}).click(); win.on('dialog', dialog=>dialog.accept()); await win.getByRole('button',{name:'Open a project'}).click();
+  await win.locator('.file').filter({hasText:'sample.txt'}).click({timeout:5000}); await win.locator('.view-lines').getByText('original').waitFor();
+  await win.locator('.view-lines').click(); await win.keyboard.press('Control+A'); await win.keyboard.insertText('edited');
+  await win.getByRole('button',{name:'Save',exact:true}).click(); await win.waitForTimeout(300); assert.equal(await readFile(file,'utf8'),'edited');
+  await win.locator('.view-lines').click(); await win.keyboard.press('Control+A'); await win.keyboard.insertText('unsaved'); await writeFile(file,'external');
+  await win.getByRole('button',{name:'Save',exact:true}).click(); await win.locator('.error').waitFor(); assert.match(await win.locator('.error').innerText(),/changed on disk/i); assert.equal(await readFile(file,'utf8'),'external');
+  await win.getByPlaceholder('Describe a job for Muse').fill('Test job'); await win.getByRole('button',{name:'Add job'}).click(); await win.getByText('blocked: coordinator unavailable').waitFor();
+  const indexed=await win.evaluate(()=>window.coder.listFiles()); assert.ok(!indexed.includes('private.txt')); assert.ok(!indexed.includes('.env')); assert.ok(!indexed.includes(path.join('nested','ignored.txt'))); const syntax=await win.evaluate(()=>window.coder.searchSymbols('greet')); assert.ok(syntax.symbols.some(s=>s.name==='greet')); assert.ok(syntax.calls.some(c=>c.caller==='caller'&&c.target==='greet')); const scratch=await win.evaluate(()=>window.coder.prepareScratch(1)); await assert.rejects(readFile(path.join(scratch,'private.txt'))); await assert.rejects(readFile(path.join(scratch,'.env'))); await writeFile(path.join(scratch,'sample.txt'),'proposal');
+  const conflicts=await win.evaluate(()=>window.coder.scratchConflicts(1)); assert.deepEqual(conflicts,[]); await writeFile(file,'changed externally'); assert.deepEqual(await win.evaluate(()=>window.coder.scratchConflicts(1)),['sample.txt']); await writeFile(file,'external'); const diff=await win.evaluate(()=>window.coder.scratchDiff(1)); assert.match(diff,/proposal/); assert.equal(await readFile(file,'utf8'),'external');
+  const hits=await win.evaluate(()=>window.coder.search('external')); assert.equal(hits[0].file,'sample.txt');
+  await writeFile(file,'changed on disk'); const changed=await win.evaluate(()=>window.coder.search('changed on disk')); assert.equal(changed[0].file,'sample.txt');
+  await win.evaluate(()=>{window._terminalOutput='';window.coder.onTerminalData(s=>window._terminalOutput+=s)}); await win.evaluate(()=>window.coder.terminalStart());
+  await win.evaluate(()=>window.coder.terminalWrite('$jetstreamTest = 41\r')); await win.evaluate(()=>window.coder.terminalWrite('Write-Output ($jetstreamTest + 1)\r')); await win.waitForFunction(()=>window._terminalOutput.includes('42\r\n'),null,{timeout:15000}); await win.evaluate(()=>window.coder.terminalStop());
+  const run=await win.evaluate(()=>window.coder.terminalRun('Write-Output terminal-ok')); assert.equal(run.exit,0); assert.match(run.output,/terminal-ok/);
+  await assert.rejects(win.evaluate(()=>window.coder.verifyJob(1)),/Configure both/);
+  await win.evaluate(()=>window.coder.configureVerification('Write-Output build-ok','Write-Output test-ok'));
+  await win.evaluate(()=>window.coder.setPause(true)); await assert.rejects(win.evaluate(()=>window.coder.verifyJob(1)),/paused/);
+  await win.evaluate(()=>window.coder.setPause(false)); const checks=await win.evaluate(()=>window.coder.verifyJob(1)); assert.equal(checks.length,2); assert.ok(checks.every(x=>x.exit===0)); const gate=await win.evaluate(()=>window.coder.jobGate(1)); assert.equal(gate.applyAvailable,false); assert.ok(gate.reasons.some(r=>r.includes('different model'))); assert.ok(gate.reasons.some(r=>r.includes('not approved'))); assert.ok(!gate.reasons.some(r=>r.includes('build and test')));
+  const state=await win.evaluate(()=>window.coder.jobs()); assert.match(state.jobs[0].status,/blocked: independent review unavailable/); assert.equal(await readFile(file,'utf8'),'changed on disk');
+  await win.evaluate(()=>window.coder.configureVerification('Set-Content -Path generated.txt -Value changed','Write-Output test-ok')); const changedChecks=await win.evaluate(()=>window.coder.verifyJob(1)); assert.equal(changedChecks.at(-1).kind,'integrity'); assert.match((await win.evaluate(()=>window.coder.jobs())).jobs[0].status,/verification invalid/); assert.ok((await win.evaluate(()=>window.coder.jobGate(1))).reasons.some(r=>r.includes('build and test')));
+  await app.evaluate(()=>{globalThis.fetch=async(url,options)=>{if(String(url).endsWith('/api/tags'))return new Response(JSON.stringify({models:[{name:'fixture-model'}]}),{status:200});if(String(url).endsWith('/api/chat')){const data=JSON.parse(options.body);return new Response(JSON.stringify({model:data.model,done:true,message:{content:'fixture response'}}),{status:200})}throw new Error('Unexpected URL')}});
+  await win.getByTitle('Team').click(); await win.getByLabel('Local model name').fill('fixture-model'); await win.getByLabel('Local model prompt').fill('hello'); await win.getByRole('button',{name:'Ask',exact:true}).click(); await win.getByText('fixture response').waitFor();
+  await win.evaluate(()=>window.coder.configureVerification('exit 1','Write-Output never')); const failed=await win.evaluate(()=>window.coder.verifyJob(1)); assert.equal(failed.length,1); assert.equal(failed[0].exit,1); await win.evaluate(()=>window.coder.openProject()); const recovered=await win.evaluate(()=>window.coder.jobs()); assert.equal(recovered.jobs[0].id,1); assert.match(recovered.jobs[0].status,/checks failed/); assert.equal(await win.evaluate(()=>window.coder.prepareScratch(1)),scratch);
+  await win.evaluate(()=>window.coder.configureVerification('Start-Sleep -Seconds 2','Write-Output done')); await win.evaluate(()=>{window._pendingVerification=window.coder.verifyJob(1).catch(e=>String(e))}); await win.waitForFunction(async()=>((await window.coder.jobs()).jobs[0].status==='checks running; apply blocked'));
+  await win.evaluate(()=>window.coder.openProject()); assert.match((await win.evaluate(()=>window.coder.jobs())).jobs[0].status,/interrupted/); await win.evaluate(()=>window._pendingVerification);
+
+
+
+ } finally {if(app) { const proc=app.process(); await app.evaluate(({app})=>app.exit(0)).catch(()=>{}); if(proc.exitCode===null) await new Promise(resolve=>proc.once('exit',resolve)); } await rm(dir,{recursive:true,force:true}).catch(()=>{});await rm(data,{recursive:true,force:true,maxRetries:3,retryDelay:200}).catch(()=>{});}
+});
+
+
+
+
+
+
