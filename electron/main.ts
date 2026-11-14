@@ -13,7 +13,7 @@ import * as pty from 'node-pty';
 import ts from 'typescript';
 
 const execFileAsync=promisify(execFile);
-let terminal:pty.IPty|undefined; let terminalSession=0;
+let terminal:pty.IPty|undefined; let terminalSession=0; let verificationEpoch=0;
 let win:BrowserWindow; let project=''; let db:DatabaseSync|undefined; let closeAllowed=false; let watcher:FSWatcher|undefined; let generation=0; let indexTimer:ReturnType<typeof setTimeout>|undefined;
 const ignored=new Set(['.git','node_modules','dist','dist-electron','build','.jetstream-coder']);
 const hash=(s:string|Buffer)=>crypto.createHash('sha256').update(s).digest('hex');
@@ -101,7 +101,7 @@ app.whenReady().then(()=>{
  ipcMain.handle('project:open',async()=>{
   const selection=await dialog.showOpenDialog(win,{properties:['openDirectory']}); if(selection.canceled||!selection.filePaths[0]) return null;
   const selected=await fs.realpath(selection.filePaths[0]);
-  ++generation; watcher?.close(); if(indexTimer)clearTimeout(indexTimer); terminalSession++; if(terminal){terminal.kill(); terminal=undefined;win.webContents.send('terminal:exit',0)}
+  ++verificationEpoch; ++generation; watcher?.close(); if(indexTimer)clearTimeout(indexTimer); terminalSession++; if(terminal){terminal.kill(); terminal=undefined;win.webContents.send('terminal:exit',0)}
   const dataDir=path.join(app.getPath('userData'),'projects'); await fs.mkdir(dataDir,{recursive:true});
   const next=new DatabaseSync(path.join(dataDir,hash(selected)+'.sqlite'));
   next.exec("CREATE TABLE IF NOT EXISTS jobs (id INTEGER PRIMARY KEY, request TEXT NOT NULL, status TEXT NOT NULL, created TEXT NOT NULL); CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL); CREATE TABLE IF NOT EXISTS file_index (path TEXT PRIMARY KEY, content TEXT NOT NULL, fingerprint TEXT NOT NULL); CREATE TABLE IF NOT EXISTS job_events (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, kind TEXT NOT NULL, detail TEXT NOT NULL, created TEXT NOT NULL); CREATE TABLE IF NOT EXISTS pieces (job_id INTEGER PRIMARY KEY, base_path TEXT NOT NULL, scratch_path TEXT NOT NULL, manifest TEXT NOT NULL); CREATE TABLE IF NOT EXISTS syntax_indexed (path TEXT PRIMARY KEY, fingerprint TEXT NOT NULL); CREATE TABLE IF NOT EXISTS symbols (path TEXT NOT NULL, name TEXT NOT NULL, kind TEXT NOT NULL, line INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS calls (path TEXT NOT NULL, caller TEXT NOT NULL, target TEXT NOT NULL, line INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS reviews (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, snapshot TEXT NOT NULL, author_model TEXT NOT NULL, reviewer_model TEXT NOT NULL, approved INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS approvals (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, snapshot TEXT NOT NULL, check_id INTEGER NOT NULL, review_id INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS verification_runs (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, before_hash TEXT NOT NULL, after_hash TEXT NOT NULL, build_command TEXT NOT NULL, test_command TEXT NOT NULL, results TEXT NOT NULL, valid INTEGER NOT NULL, created TEXT NOT NULL)");
@@ -256,11 +256,11 @@ app.whenReady().then(()=>{
  });
  ipcMain.handle('verification:configure',(_e,build:string,test:string)=>{
    if(typeof build!=='string'||typeof test!=='string'||build.length>4000||test.length>4000)throw new Error('Invalid verification commands');
-   const d=database();transaction(d,()=>{const put=d.prepare('INSERT INTO settings (key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value');put.run('build_command',build.trim());put.run('test_command',test.trim());d.prepare('UPDATE verification_runs SET valid=0').run()});
+   ++verificationEpoch;const d=database();transaction(d,()=>{const put=d.prepare('INSERT INTO settings (key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value');put.run('build_command',build.trim());put.run('test_command',test.trim());d.prepare('UPDATE verification_runs SET valid=0').run()});
  });
  const verifying=new Set<number>();
  ipcMain.handle('verification:run',async(_e,id:number)=>{
-   if(!Number.isSafeInteger(id))throw new Error('Invalid job');const d=database(), expected=generation;
+   if(!Number.isSafeInteger(id))throw new Error('Invalid job');const d=database(), expected=generation, epoch=verificationEpoch;
    if(d.prepare("SELECT value FROM settings WHERE key='paused'").get()?.value==='true')throw new Error('Team is paused');
    const job=d.prepare('SELECT status FROM jobs WHERE id=?').get(id) as {status:string}|undefined;if(!job||job.status==='cancelled')throw new Error('Job is unavailable or cancelled');
    const piece=d.prepare('SELECT scratch_path FROM pieces WHERE job_id=?').get(id) as {scratch_path:string}|undefined;
@@ -274,19 +274,19 @@ app.whenReady().then(()=>{
      const beforeHash=await fingerprintTree(piece.scratch_path);
      const results:{kind:string;command:string;exit:number;output:string}[]=[];
      for(const [kind,command] of [['build',build],['test',test]]) {
-       if(expected!==generation)throw new Error('Project changed during verification');
+       if(expected!==generation)throw new Error('Project changed during verification');if(epoch!==verificationEpoch)throw new Error('Pause or verification settings changed during the run');
        if(d.prepare("SELECT value FROM settings WHERE key='paused'").get()?.value==='true')throw new Error('Team paused during verification');
        let result:{kind:string;command:string;exit:number;output:string};
        try{const r=await execFileAsync('powershell.exe',['-NoLogo','-NoProfile','-NonInteractive','-Command',`$ErrorActionPreference = 'Stop'; & { ${command} }; if (-not $?) { exit 1 }; if ($null -ne $LASTEXITCODE) { exit $LASTEXITCODE }`],{cwd:piece.scratch_path,timeout:120000,maxBuffer:2_000_000,windowsHide:true});result={kind,command,exit:0,output:r.stdout+r.stderr};}
        catch(e){const err=e as Error & {stdout?:string;stderr?:string;code?:number;killed?:boolean};result={kind,command,exit:typeof err.code==='number'?err.code:-1,output:(err.stdout||'')+(err.stderr||'')+(err.killed?'\nTimed out.':'')};}
-       if(expected!==generation)throw new Error('Project changed during verification');
+       if(expected!==generation)throw new Error('Project changed during verification');if(epoch!==verificationEpoch)throw new Error('Pause or verification settings changed during the run');
        if(d.prepare("SELECT value FROM settings WHERE key='paused'").get()?.value==='true')throw new Error('Team paused during verification');
        if(get('build_command')!==build||get('test_command')!==test)throw new Error('Verification commands changed during the run');
        results.push(result);d.prepare('INSERT INTO job_events (job_id,kind,detail,created) VALUES (?,?,?,?)').run(id,kind,JSON.stringify(result),new Date().toISOString());
        if(result.exit!==0)break;
      }
      const afterHash=await fingerprintTree(piece.scratch_path);
-     if(expected!==generation)throw new Error('Project changed during verification');
+     if(expected!==generation)throw new Error('Project changed during verification');if(epoch!==verificationEpoch)throw new Error('Pause or verification settings changed during the run');
      if(d.prepare("SELECT value FROM settings WHERE key='paused'").get()?.value==='true')throw new Error('Team paused during verification');
      if(get('build_command')!==build||get('test_command')!==test)throw new Error('Verification commands changed during the run');
      const passed=results.length===2&&results.every(r=>r.exit===0)&&beforeHash===afterHash;
@@ -315,7 +315,7 @@ app.whenReady().then(()=>{
    if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid job');
    return database().prepare('SELECT kind,detail,created FROM job_events WHERE job_id=? ORDER BY id').all(id);
  });
- ipcMain.handle('jobs:pause',(_e,paused:boolean)=>{database().prepare("INSERT INTO settings (key,value) VALUES ('paused',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(String(!!paused));return true;});
+ ipcMain.handle('jobs:pause',(_e,paused:boolean)=>{++verificationEpoch;database().prepare("INSERT INTO settings (key,value) VALUES ('paused',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(String(!!paused));return true;});
  let localRequest:AbortController|undefined;
  ipcMain.handle('ollama:ask',async(_e,model:string,prompt:string)=>{
    if(typeof model!=='string'||!model||model.length>200||typeof prompt!=='string'||!prompt.trim()||prompt.length>12000)throw new Error('Choose a model and enter a prompt under 12,000 characters');

@@ -221,3 +221,11 @@ Working on invalidating in-flight verification if pause or command settings chan
 ### 2026-11-13 — Codex verification progress
 
 Verification now rechecks pause and command settings after the final scratch fingerprint and before accepting results. Built V0.001 and all six tests passed, including pausing an in-flight check. Files: `electron/main.ts`, `tests/desktop.test.mjs`, and `CHANGELOG.md`. Real AI Apply and independent review remain disabled and unfinished.
+
+### 2026-11-13 — Codex continuing V0.001 verification safeguards
+
+Phil asked for continued work without routine questions. I am strengthening verification to detect pause/resume and configuration changes throughout a running check; AI Apply stays disabled.
+
+### 2026-11-13 — Codex verification epoch progress
+
+Verification now tracks a change epoch so pause/resume or changes to command settings during a run invalidate it even if the prior values are restored before completion. V0.001 build and all six tests passed, including pause followed by resume during a running check. Files: `electron/main.ts`, `tests/desktop.test.mjs`, `CHANGELOG.md`, and this handoff. Apply and real independent review remain disabled and unfinished.

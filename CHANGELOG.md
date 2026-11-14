@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Verification now invalidates runs if the team is paused or check settings are changed and restored mid-run.
+
 - Improved verification to recheck pause and command settings before recording results.
 
 - Added creation of new files within the open project without overwriting existing files.
