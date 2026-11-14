@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Job reports include recorded disposable-test Apply and post-apply check outcomes.
+
 - Checkpoint inspection identifies interrupted operations requiring recovery inspection.
 
 - Existing candidate checkpoints can be inspected after reopening a project.
