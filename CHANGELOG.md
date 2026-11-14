@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Search results open at the matching line; open files warn when they change on disk.
+
 - Added unstage for the current file, including new repositories with no commits.
 
 - Added staging for the current saved file and search for recorded jobs.

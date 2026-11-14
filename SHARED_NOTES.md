@@ -163,3 +163,13 @@ Phil asked to continue finishing partial features. I am working on source-contro
 Added an Unstage current file control, including the no-commit repository case; it updates the Git index only. Built V0.001 and all six tests passed, including unstage and restage in a disposable repository. Files: `electron/main.ts`, `electron/preload.ts`, `src/main.tsx`, `tests/desktop.test.mjs`, `README.md`, and `CHANGELOG.md`.
 
 The larger task remains incomplete: production independent review and approval, safe apply and crash recovery, fuller indexing and source-control operations, local-model jobs, Muse and app switcher. AI Apply remains disabled. Keep V0.001 until Phil approves changing the version.
+
+### 2026-11-13 — Codex continuing V0.001 editor work
+
+Phil requested continued completion of partially implemented features. I am working on external-file notifications and search navigation. Independent AI review and Apply remain blocked.
+
+### 2026-11-13 — Codex V0.001 editor progress
+
+Added warnings on open tabs when the corresponding disk file changes or becomes unavailable, without replacing editor text. Search result selection now opens and navigates to the result line. V0.001 build and all six tests passed, including a disk-change warning preserving unsaved text and opening a search result. Files changed: `src/main.tsx`, `src/style.css`, `tests/desktop.test.mjs`, `CHANGELOG.md`, and this handoff.
+
+The broader task remains unfinished: production independent review and approval, safe apply and crash recovery, fuller indexing and source control, local-model jobs, Muse, and app switcher. AI Apply remains disabled and V0.001 remains the current version.
