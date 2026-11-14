@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Added staging for the current saved file and search for recorded jobs.
+
 - Added source-control diff inspection and improved scratch snapshot and new-file conflict checks.
 
 - Added a Reload button with a warning before discarding unsaved edits.

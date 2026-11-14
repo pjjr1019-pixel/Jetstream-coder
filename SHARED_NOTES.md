@@ -143,3 +143,13 @@ Phil requested that work continue on all partially implemented features. I am wo
 **Checks:** V0.001 build and all six tests passed, including the new-file collision and Git diff panel on a disposable repository. Real Apply remains disabled; no real reviewer or production rollback is connected.
 
 **Remaining:** Finish independent review and approval, production safe apply and crash recovery, broader indexing and source-control operations, local-model job execution, Muse and app-switcher integration. Keep V0.001 until Phil decides the base is stable.
+
+### 2026-11-13 — Codex starting source-control and job improvements
+
+Phil requested continued completion of the partial V0.001 features. I am working on user-directed Git staging and job history/search; production AI Apply remains disabled.
+
+### 2026-11-13 — Codex V0.001 source and job progress
+
+Added staging of the current saved visible project file using a literal Git pathspec; unsaved editor changes must be saved first. Added job search by request and status. V0.001 build and all six tests passed, including staging and search in a disposable Git project. Files: `electron/main.ts`, `electron/preload.ts`, `src/main.tsx`, `tests/desktop.test.mjs`, `README.md`, and `CHANGELOG.md`.
+
+The broader work remains incomplete: production AI review, approval and Apply, crash-safe rollback, full Git workflow, broader indexing, automated local workers, Muse and app-switcher integration. Apply stays disabled. Keep V0.001 until Phil approves a new version.

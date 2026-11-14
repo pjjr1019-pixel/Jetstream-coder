@@ -147,9 +147,15 @@ app.whenReady().then(()=>{
    try {const result=await execFileAsync('powershell.exe',['-NoLogo','-NoProfile','-NonInteractive','-Command',command],{cwd:project,timeout:120000,maxBuffer:2_000_000,windowsHide:true});return {output:result.stdout+result.stderr,exit:0};}
    catch(e){const err=e as Error & {stdout?:string;stderr?:string;code?:number|string;killed?:boolean};return {output:(err.stdout||'')+(err.stderr||'')+(err.killed?'\nCommand timed out.':''),exit:typeof err.code==='number'?err.code:-1};}
  });
+ ipcMain.handle('project:git-stage',async(_e,name:string)=>{
+   if(typeof name!=='string'||!name||!project)throw new Error('Open a file in a project first');
+   await checked(name);if(!(await files()).includes(name))throw new Error('Only visible project files can be staged');
+   try{await execFileAsync('git',['--literal-pathspecs','add','--',name],{cwd:project,timeout:10000,maxBuffer:1_000_000,windowsHide:true});}
+   catch(e){throw new Error(`Could not stage file: ${(e as Error).message}`)}
+ });
  ipcMain.handle('project:git-diff',async()=>{if(!project)throw new Error('Open a project first');try{const result=await execFileAsync('git',['-c','core.pager=cat','diff','--no-ext-diff','--no-textconv','--'],{cwd:project,timeout:10000,maxBuffer:2_000_000,windowsHide:true});const staged=await execFileAsync('git',['-c','core.pager=cat','diff','--cached','--no-ext-diff','--no-textconv','--'],{cwd:project,timeout:10000,maxBuffer:2_000_000,windowsHide:true});return `STAGED CHANGES\n${staged.stdout||'(none)'}\nUNSTAGED CHANGES\n${result.stdout||'(none)'}`;}catch{throw new Error('Git diff unavailable for this folder')}});
  ipcMain.handle('project:git',async()=>{if(!project) return '';try{return (await execFileAsync('git',['status','--short','--branch'],{cwd:project,timeout:10000,maxBuffer:1_000_000})).stdout;}catch{return 'Git status unavailable for this folder.';}});
- ipcMain.handle('jobs:list',()=>({jobs:database().prepare('SELECT * FROM jobs ORDER BY id DESC').all(),paused:database().prepare("SELECT value FROM settings WHERE key='paused'").get()?.value==='true'}));
+ ipcMain.handle('jobs:list',(_e,query:string='')=>({jobs:database().prepare('SELECT * FROM jobs WHERE instr(lower(request),lower(?))>0 OR instr(lower(status),lower(?))>0 ORDER BY id DESC').all(typeof query==='string'?query.slice(0,200):'',typeof query==='string'?query.slice(0,200):''),paused:database().prepare("SELECT value FROM settings WHERE key='paused'").get()?.value==='true'}));
  ipcMain.handle('jobs:add',(_e,request:string)=>{if(typeof request!=='string'||!request.trim()||request.length>10000)throw new Error('Enter a job under 10,000 characters');const d=database(); transaction(d,()=>{const result=d.prepare('INSERT INTO jobs (request,status,created) VALUES (?,?,?)').run(request.trim(),'blocked: coordinator unavailable',new Date().toISOString());d.prepare('INSERT INTO job_events (job_id,kind,detail,created) VALUES (?,?,?,?)').run(Number(result.lastInsertRowid),'requested',request.trim(),new Date().toISOString())});return true;});
  const scratchLocks=new Set<number>();
  ipcMain.handle('jobs:scratch',async(_e,id:number)=>{
