@@ -44,6 +44,7 @@ contextBridge.exposeInMainWorld('coder', {
   prepareCheckpoint: (id:number) => ipcRenderer.invoke('jobs:prepare-checkpoint',id),
   checkpointStatus: (id:number) => ipcRenderer.invoke('jobs:checkpoint-status',id),
   latestCheckpoint: (id:number) => ipcRenderer.invoke('jobs:latest-checkpoint',id),
+  ...(process.env.JETSTREAM_DISPOSABLE_APPLY_TEST==='1'?{disposableApply:(id:number)=>ipcRenderer.invoke('jobs:disposable-apply',id),disposableRollback:(id:number)=>ipcRenderer.invoke('jobs:disposable-rollback',id)}:{}),
   rejectCandidate: (id:number) => ipcRenderer.invoke('jobs:reject-candidate',id),
   approveCandidate: (id:number,source:string,candidate:string,review:number,check:number) => ipcRenderer.invoke('jobs:approve-candidate',id,source,candidate,review,check),
   openCandidate: (id:number) => ipcRenderer.invoke('jobs:open-candidate',id),
