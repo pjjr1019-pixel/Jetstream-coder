@@ -2,6 +2,10 @@
 
 ## V0.001
 
+- Gate status now reports cancelled jobs and project files that differ from the scratch baseline.
+
+- Commit previews now also verify the current branch, even when two branches point to the same commit.
+
 - Added per-file Git change inspection and tracked-deletion stage/unstage.
 - Added recoverable single-file local scratch proposals and experimental review by a model with a different digest; project Apply remains unavailable.
 

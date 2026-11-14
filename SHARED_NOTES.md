@@ -269,3 +269,7 @@ Phil requested sustained work on the approved partially implemented features. I 
 ### 2026-11-14 — Codex local proposal and Git progress
 
 Per-file Git status, diff, deletion staging and unstaging are implemented. Local Ollama can generate a bounded single-file proposal from a selected scratch file, store the proposal in project history, and request experimental feedback from a model with a different digest. Reopening preserves the proposal. A disposable real-model run using qwen3.5:4b and qwen3.5:9b passed; neither scratch nor project was changed. This is not the final independent review of a scratch change and does not unlock Apply. Safe application, conflict and crash recovery, approval, and verified coordinator remain incomplete. Keep V0.001.
+
+### 2026-11-14 — Codex commit and gate safeguards
+
+Commit review now checks the branch reference as well as the commit and staged tree; a switch between branches at the same commit requires review again. Gate status reports project snapshot conflicts and cancelled jobs. V0.001 build and all six tests passed. Apply and final review remain incomplete.

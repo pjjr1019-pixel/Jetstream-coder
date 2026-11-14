@@ -26,7 +26,7 @@ contextBridge.exposeInMainWorld('coder', {
   gitUnstage: (name:string) => ipcRenderer.invoke('project:git-unstage',name),
   gitStage: (name:string,fingerprint:string) => ipcRenderer.invoke('project:git-stage',name,fingerprint),
   gitCommitPreview: () => ipcRenderer.invoke('project:git-commit-preview'),
-  gitCommit: (message:string,tree:string,head:string) => ipcRenderer.invoke('project:git-commit',message,tree,head),
+  gitCommit: (message:string,tree:string,head:string,headRef:string) => ipcRenderer.invoke('project:git-commit',message,tree,head,headRef),
   gitHistory: () => ipcRenderer.invoke('project:git-history'),
   gitDiff: () => ipcRenderer.invoke('project:git-diff'),
   gitStatus: () => ipcRenderer.invoke('project:git'),

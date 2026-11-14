@@ -233,12 +233,13 @@ app.whenReady().then(()=>{
    const repo=(await run(['rev-parse','--show-toplevel'])).stdout.trim();if(path.resolve(repo).toLowerCase()!==root.toLowerCase())throw new Error('Open the repository root to commit');
    const tree=(await run(['write-tree'])).stdout.trim();const diff=(await run(['-c','core.pager=cat','diff','--cached','--no-ext-diff','--no-textconv','--'])).stdout;
    if(!diff.trim())throw new Error('No staged text changes to commit');let head='';try{head=(await run(['rev-parse','--verify','HEAD'])).stdout.trim()}catch{/* Initial commit. */}
-   if(expected!==generation)throw new Error('Project changed');return {tree,diff,head};
+   let headRef='';try{headRef=(await run(['symbolic-ref','-q','HEAD'])).stdout.trim()}catch{headRef='(detached)'}
+   if(expected!==generation)throw new Error('Project changed');return {tree,diff,head,headRef};
  }
  ipcMain.handle('project:git-commit-preview',()=>gitCommitPreview());
- ipcMain.handle('project:git-commit',async(_e,message:string,tree:string,head:string)=>{
+ ipcMain.handle('project:git-commit',async(_e,message:string,tree:string,head:string,headRef:string)=>{
    if(typeof message!=='string'||!message.trim()||message.length>1000||/[\r\n\0]/.test(message))throw new Error('Enter a single-line commit message');
-   const root=project,expected=generation;const current=await gitCommitPreview();if(expected!==generation||current.tree!==tree||current.head!==head)throw new Error('Staged changes or branch changed; review them again');
+   const root=project,expected=generation;const current=await gitCommitPreview();if(expected!==generation||current.tree!==tree||current.head!==head||current.headRef!==headRef)throw new Error('Staged changes or branch changed; review them again');
    try{const result=await execFileAsync('git',['commit','-m',message.trim()],{cwd:root,timeout:120000,maxBuffer:2_000_000,windowsHide:true,env:{...process.env,GIT_TERMINAL_PROMPT:'0'}});return result.stdout+result.stderr}
    catch(e){const error=e as Error & {stderr?:string;stdout?:string};throw new Error(`Commit failed: ${error.stderr||error.stdout||error.message}`)}
  });
@@ -298,7 +299,7 @@ app.whenReady().then(()=>{
    try {return (await execFileAsync('git',['diff','--no-index','--no-ext-diff','--no-textconv','--',row.base_path,row.scratch_path],{timeout:15000,maxBuffer:2_000_000,windowsHide:true})).stdout || 'No changes in scratch.';}
    catch(e){const err=e as Error & {code?:number;stdout?:string};if(err.code===1)return err.stdout || 'Changes found but no text diff is available.';throw new Error('Could not generate diff: '+err.message);}
  });
- ipcMain.handle('jobs:conflicts',async(_e,id:number)=>{
+ async function scratchConflicts(id:number){
    if(!Number.isSafeInteger(id))throw new Error('Invalid job');const expected=generation;
    const row=database().prepare('SELECT manifest,scratch_path FROM pieces WHERE job_id=?').get(id) as {manifest:string;scratch_path:string}|undefined;if(!row)throw new Error('Prepare scratch first');
    const manifest=JSON.parse(row.manifest) as {path:string;fingerprint:string}[];const conflicts:string[]=[];
@@ -306,7 +307,8 @@ app.whenReady().then(()=>{
    const baseline=new Set(manifest.map(x=>x.path));
    async function additions(dir:string){for(const ent of await fs.readdir(dir,{withFileTypes:true})){if(ent.isSymbolicLink())throw new Error('Scratch contains a symbolic link');const full=path.join(dir,ent.name);if(ent.isDirectory())await additions(full);else if(ent.isFile()){const rel=path.relative(row!.scratch_path,full);if(!baseline.has(rel)){try{await fs.lstat(path.join(project,rel));conflicts.push(rel)}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error}}}}}
    await additions(row.scratch_path);return [...new Set(conflicts)].sort();
- });
+ }
+ ipcMain.handle('jobs:conflicts',(_e,id:number)=>scratchConflicts(id));
  ipcMain.handle('verification:config',()=>{
    const d=database(); const get=(key:string)=>String(d.prepare('SELECT value FROM settings WHERE key=?').get(key)?.value||'');
    return {build:get('build_command'),test:get('test_command')};
@@ -365,6 +367,7 @@ app.whenReady().then(()=>{
    const review=d.prepare('SELECT * FROM reviews WHERE job_id=? ORDER BY id DESC LIMIT 1').get(id) as {id:number;snapshot:string;author_model:string;reviewer_model:string;approved:number;base_hash:string}|undefined;
    const approval=d.prepare('SELECT * FROM approvals WHERE job_id=? ORDER BY id DESC LIMIT 1').get(id) as {snapshot:string;check_id:number;review_id:number;base_hash:string}|undefined;
    const reasons=gateReasons({paused:get('paused')==='true',snapshot,baseSnapshot,baseIntact:baseSnapshot===originalHash,check:run&&{id:run.id,hash:run.after_hash,passed:run.valid===1,commandsMatch:!!get('build_command')&&!!get('test_command')&&run.build_command===get('build_command')&&run.test_command===get('test_command')},review:review&&{id:review.id,hash:review.snapshot,baseHash:review.base_hash,authorModel:review.author_model,reviewerModel:review.reviewer_model,approved:review.approved===1},approval:approval&&{snapshot:approval.snapshot,baseHash:approval.base_hash,checkId:approval.check_id,reviewId:approval.review_id}});
+   const conflicts=await scratchConflicts(id);if(expected!==generation)throw new Error('Project changed during gate check');if(conflicts.length)reasons.push(`Project files changed since the snapshot: ${conflicts.join(', ')}`);const job=d.prepare('SELECT status FROM jobs WHERE id=?').get(id) as {status:string}|undefined;if(!job||job.status==='cancelled')reasons.push('Job is cancelled or unavailable');
    return {snapshot,reasons,applyAvailable:false};
  });
  ipcMain.handle('jobs:history',(_e,id:number)=>{
