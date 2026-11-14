@@ -117,3 +117,17 @@ Phil requested local and private GitHub version history. For every completed ver
 ### 2026-11-13 — Version policy update
 
 Phil directs that all current rebuilds remain V0.001 until the base is stable and he decides to move to V0.002. `npm run build` no longer increments the version; pending notes are added under the current version. Keep the existing V0.001 Git tag on its original commit; use additional commits for later work within V0.001.
+
+### 2026-11-13 — Codex starting V0.001 foundation work
+
+Phil requested completion of partially implemented features, keeping V0.001 until the base is stable. I am working in the editor, verification, and test code. Apply remains blocked until the real review and recovery safeguards are verified.
+
+### 2026-11-13 — Codex V0.001 foundation progress
+
+**Completed:** Corrected PowerShell verification so native process failures propagate their exit code; previous successful verification records are invalidated when a new run begins or verification commands change. Pausing or changing commands during checks interrupts verification. Added Reload with a confirmation before discarding unsaved edits.
+
+**Files:** `electron/main.ts`, `src/main.tsx`, `tests/desktop.test.mjs`, `CHANGELOG.md`, and this handoff.
+
+**Verification:** V0.001 build passed; all six tests passed, including native exit code 7, stale evidence during a running check, and reloading after an external file change.
+
+**Still incomplete:** Independent reviewer, trusted review and approval, production apply and rollback, durable crash recovery, complete indexing and source-control features, model job execution, Muse and the app switcher. Apply remains disabled. Keep all builds at V0.001 until Phil decides the base is stable.

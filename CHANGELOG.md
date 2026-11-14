@@ -2,6 +2,10 @@
 
 ## V0.001
 
+- Added a Reload button with a warning before discarding unsaved edits.
+
+- Hardened verification: native command failures fail checks, and previous passing evidence is invalidated when checks restart or commands change.
+
 - Kept rebuilds at V0.001 until the stable base is ready and Phil chooses to advance the version.
 
 - Added the version number to the bottom-right corner and a changelog opened by clicking it.

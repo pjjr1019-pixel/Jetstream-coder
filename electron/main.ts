@@ -200,7 +200,7 @@ app.whenReady().then(()=>{
  });
  ipcMain.handle('verification:configure',(_e,build:string,test:string)=>{
    if(typeof build!=='string'||typeof test!=='string'||build.length>4000||test.length>4000)throw new Error('Invalid verification commands');
-   const put=database().prepare('INSERT INTO settings (key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value');put.run('build_command',build.trim());put.run('test_command',test.trim());
+   const d=database();transaction(d,()=>{const put=d.prepare('INSERT INTO settings (key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value');put.run('build_command',build.trim());put.run('test_command',test.trim());d.prepare('UPDATE verification_runs SET valid=0').run()});
  });
  const verifying=new Set<number>();
  ipcMain.handle('verification:run',async(_e,id:number)=>{
@@ -211,7 +211,7 @@ app.whenReady().then(()=>{
    const get=(key:string)=>String(d.prepare('SELECT value FROM settings WHERE key=?').get(key)?.value||'');const build=get('build_command'),test=get('test_command');
    if(!build||!test)throw new Error('Configure both build and test commands before verification');
    if(verifying.has(id))throw new Error('Verification is already running');verifying.add(id);
-   d.prepare('UPDATE jobs SET status=? WHERE id=?').run('checks running; apply blocked',id);
+   transaction(d,()=>{d.prepare('UPDATE verification_runs SET valid=0 WHERE job_id=?').run(id);d.prepare('UPDATE jobs SET status=? WHERE id=?').run('checks running; apply blocked',id)});
    d.prepare('INSERT INTO job_events (job_id,kind,detail,created) VALUES (?,?,?,?)').run(id,'verification_started','Build and test checks started',new Date().toISOString());
    try {
      const beforeHash=await fingerprintTree(piece.scratch_path);
@@ -220,9 +220,11 @@ app.whenReady().then(()=>{
        if(expected!==generation)throw new Error('Project changed during verification');
        if(d.prepare("SELECT value FROM settings WHERE key='paused'").get()?.value==='true')throw new Error('Team paused during verification');
        let result:{kind:string;command:string;exit:number;output:string};
-       try{const r=await execFileAsync('powershell.exe',['-NoLogo','-NoProfile','-NonInteractive','-Command',command],{cwd:piece.scratch_path,timeout:120000,maxBuffer:2_000_000,windowsHide:true});result={kind,command,exit:0,output:r.stdout+r.stderr};}
+       try{const r=await execFileAsync('powershell.exe',['-NoLogo','-NoProfile','-NonInteractive','-Command',`$ErrorActionPreference = 'Stop'; & { ${command} }; if (-not $?) { exit 1 }; if ($null -ne $LASTEXITCODE) { exit $LASTEXITCODE }`],{cwd:piece.scratch_path,timeout:120000,maxBuffer:2_000_000,windowsHide:true});result={kind,command,exit:0,output:r.stdout+r.stderr};}
        catch(e){const err=e as Error & {stdout?:string;stderr?:string;code?:number;killed?:boolean};result={kind,command,exit:typeof err.code==='number'?err.code:-1,output:(err.stdout||'')+(err.stderr||'')+(err.killed?'\nTimed out.':'')};}
        if(expected!==generation)throw new Error('Project changed during verification');
+       if(d.prepare("SELECT value FROM settings WHERE key='paused'").get()?.value==='true')throw new Error('Team paused during verification');
+       if(get('build_command')!==build||get('test_command')!==test)throw new Error('Verification commands changed during the run');
        results.push(result);d.prepare('INSERT INTO job_events (job_id,kind,detail,created) VALUES (?,?,?,?)').run(id,kind,JSON.stringify(result),new Date().toISOString());
        if(result.exit!==0)break;
      }
