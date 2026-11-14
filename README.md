@@ -19,3 +19,5 @@ Each `npm run build` keeps the current version. V0.001 remains in use until Phil
 ## Saving versions in Git
 
 Record completed changes in Git commits. Keep the existing V0.001 tag pointing to its original checkpoint; make a new version tag only when Phil approves moving to a new version. Once a remote has been configured, push the commit and its version tag to keep the online copy current. Check the files being committed and never commit credentials, local databases, or generated build artifacts. A build alone updates the displayed version and changelog; it does not automatically commit or push.
+
+The Source panel commit review checks the staged tree and branch against the preview immediately before invoking Git. Git hooks and external Git processes can still change repository state concurrently; inspect Git history if other tools are modifying the repository at the same time. This is a manual Git operation and does not enable AI Apply.

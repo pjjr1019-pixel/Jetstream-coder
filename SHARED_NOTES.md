@@ -193,3 +193,15 @@ Phil asked for continuous work on the partially implemented features without rep
 Added project-specific Git-style exclusions in Explorer, persisted per project and applied to search and new scratch copies. Existing scratch copies are not changed. Added requeue for cancelled jobs; history and scratch remain, and prior verification stays invalid. Builds remain V0.001. Both builds and all six tests passed, including exclusion persistence and requeue on a disposable project.
 
 Still incomplete: real independent review and approval, production safe apply and crash recovery, broader indexing and source-control features, automated local-model jobs, Muse and app switcher. Apply remains disabled. Files: `electron/main.ts`, `electron/preload.ts`, `src/main.tsx`, `src/style.css`, `tests/desktop.test.mjs`, `README.md`, and `CHANGELOG.md`.
+
+### 2026-11-13 — Codex continuing V0.001 source-control work
+
+Phil requested continued work without repeated prompts. I am adding an explicit in-app staged-change review and commit workflow; it is separate from AI Apply, which remains disabled.
+
+### 2026-11-13 — Codex V0.001 commit workflow progress
+
+Added a Source-panel commit message, staged diff review, and explicit manual commit action. The app checks the staged tree and HEAD against the preview immediately before invoking Git; it uses normal Git identity and hooks. It does not lock out other Git processes or enable AI Apply. The flow requires opening the repository root and currently requires a text diff.
+
+V0.001 build and all six tests passed, including stale-preview rejection, an initial commit via the UI, and unstage with an existing HEAD, on a disposable repository. Files: `electron/main.ts`, `electron/preload.ts`, `src/main.tsx`, `src/style.css`, `tests/desktop.test.mjs`, `README.md`, and `CHANGELOG.md`.
+
+Still incomplete: independent review and approval, safe Apply and crash recovery, broader indexing, local-model coding jobs, Muse and app switcher. Keep V0.001 until Phil decides otherwise.

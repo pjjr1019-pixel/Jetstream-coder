@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Added a staged-change review and commit flow for the open Git repository.
+
 - Cancelled jobs can be requeued while retaining their history; checks must be repeated.
 
 - Added project-specific exclusion settings for search and new scratch copies.

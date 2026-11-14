@@ -15,3 +15,5 @@ footer .version{margin-left:auto;border:0;background:transparent;color:#dce9ff;c
 .disk-warning{position:absolute;z-index:3;top:0;left:0;right:0;background:#61491e;color:#fff0c2;padding:8px 14px;border-bottom:1px solid #c79d4c}
 
 .ignore-settings{margin:0 14px 10px;font-size:12px}.ignore-settings p{line-height:1.4;color:#9ba8ba}.ignore-settings textarea{width:100%;min-height:72px;background:#101722;color:#e8eef7;border:1px solid #3a4659;border-radius:4px;padding:7px;resize:vertical}
+
+.commit-form{padding:12px;display:grid;gap:6px}.commit-form button,.commit-actions button{background:#27344b;border:1px solid #394b67;border-radius:4px;padding:6px}.commit-summary{padding:0 20px;color:#abc5f9}.commit-actions{display:flex;gap:8px;padding:12px 20px}
