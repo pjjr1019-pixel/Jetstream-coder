@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Interrupted scratch preparation is recorded on project reopening, with the incomplete path retained for inspection.
+
 - Failed scratch creation removes its own incomplete temporary workspace instead of leaving an orphan.
 
 - Per-file rename diffs and unstaging now include both the original and new paths.

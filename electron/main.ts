@@ -128,10 +128,12 @@ app.whenReady().then(()=>{
   const dataDir=path.join(app.getPath('userData'),'projects'); await fs.mkdir(dataDir,{recursive:true});
   const next=new DatabaseSync(path.join(dataDir,hash(selected)+'.sqlite'));
   next.exec("CREATE TABLE IF NOT EXISTS jobs (id INTEGER PRIMARY KEY, request TEXT NOT NULL, status TEXT NOT NULL, created TEXT NOT NULL); CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL); CREATE TABLE IF NOT EXISTS file_index (path TEXT PRIMARY KEY, content TEXT NOT NULL, fingerprint TEXT NOT NULL); CREATE TABLE IF NOT EXISTS job_events (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, kind TEXT NOT NULL, detail TEXT NOT NULL, created TEXT NOT NULL); CREATE TABLE IF NOT EXISTS pieces (job_id INTEGER PRIMARY KEY, base_path TEXT NOT NULL, scratch_path TEXT NOT NULL, manifest TEXT NOT NULL); CREATE TABLE IF NOT EXISTS syntax_indexed (path TEXT PRIMARY KEY, fingerprint TEXT NOT NULL); CREATE TABLE IF NOT EXISTS symbols (path TEXT NOT NULL, name TEXT NOT NULL, kind TEXT NOT NULL, line INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS calls (path TEXT NOT NULL, caller TEXT NOT NULL, target TEXT NOT NULL, line INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS reviews (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, snapshot TEXT NOT NULL, author_model TEXT NOT NULL, reviewer_model TEXT NOT NULL, approved INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS approvals (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, snapshot TEXT NOT NULL, check_id INTEGER NOT NULL, review_id INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS verification_runs (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, before_hash TEXT NOT NULL, after_hash TEXT NOT NULL, build_command TEXT NOT NULL, test_command TEXT NOT NULL, results TEXT NOT NULL, valid INTEGER NOT NULL, created TEXT NOT NULL)");
+  next.exec("CREATE TABLE IF NOT EXISTS scratch_preparations (job_id INTEGER PRIMARY KEY, path TEXT NOT NULL, created TEXT NOT NULL)");
   next.exec("CREATE TABLE IF NOT EXISTS local_proposals (id INTEGER PRIMARY KEY, job_id INTEGER NOT NULL, path TEXT NOT NULL, model TEXT NOT NULL, digest TEXT NOT NULL, source_hash TEXT NOT NULL, source_content TEXT NOT NULL, proposed_content TEXT NOT NULL, explanation TEXT NOT NULL, created TEXT NOT NULL); CREATE TABLE IF NOT EXISTS local_proposal_reviews (id INTEGER PRIMARY KEY, proposal_id INTEGER NOT NULL, model TEXT NOT NULL, digest TEXT NOT NULL, verdict TEXT NOT NULL, findings TEXT NOT NULL, created TEXT NOT NULL)");
   for(const table of ['reviews','approvals']){const cols=next.prepare(`PRAGMA table_info(${table})`).all() as {name:string}[];if(!cols.some(c=>c.name==='base_hash'))next.exec(`ALTER TABLE ${table} ADD COLUMN base_hash TEXT NOT NULL DEFAULT ''`);}
   if(next.prepare("SELECT value FROM settings WHERE key='syntax_version'").get()?.value!=='2'){next.exec("DELETE FROM syntax_indexed; INSERT INTO settings(key,value) VALUES ('syntax_version','2') ON CONFLICT(key) DO UPDATE SET value='2'")};
   transaction(next,()=>{const interrupted=next.prepare("SELECT id FROM jobs WHERE status='checks running; apply blocked'").all() as {id:number}[];for(const job of interrupted){next.prepare('UPDATE verification_runs SET valid=0 WHERE job_id=?').run(job.id);next.prepare('UPDATE jobs SET status=? WHERE id=?').run('verification interrupted; retry required',job.id);next.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(job.id,'verification_interrupted','Application closed or project changed before verification completed',new Date().toISOString())}});
+  transaction(next,()=>{const interrupted=next.prepare('SELECT job_id,path FROM scratch_preparations').all() as {job_id:number;path:string}[];for(const item of interrupted){next.prepare('UPDATE jobs SET status=? WHERE id=?').run('scratch preparation interrupted; retry required',item.job_id);next.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(item.job_id,'scratch_interrupted',`Scratch preparation stopped; incomplete files may remain at ${item.path}`,new Date().toISOString())}next.prepare('DELETE FROM scratch_preparations').run()});
   db?.close();db=next;project=selected; await rebuildIndex(); startWatcher(); return project;
  });
  ipcMain.handle('project:index-status',()=>indexState);
@@ -270,8 +272,9 @@ app.whenReady().then(()=>{
    if(scratchLocks.has(id))throw new Error('Scratch workspace is already being prepared');
    scratchLocks.add(id);
    const scratchRoot=path.resolve(app.getPath('userData'),'scratch',hash(root));
-   const destination=path.resolve(scratchRoot,`${id}-${crypto.randomUUID()}`);let created=false,registered=false;
+   const destination=path.resolve(scratchRoot,`${id}-${crypto.randomUUID()}`);let created=false,registered=false,recorded=false;
    try {
+     transaction(d,()=>{d.prepare('INSERT INTO scratch_preparations(job_id,path,created) VALUES(?,?,?)').run(id,destination,new Date().toISOString());d.prepare('UPDATE jobs SET status=? WHERE id=?').run('preparing scratch',id)});recorded=true;
      if(path.dirname(destination)!==scratchRoot)throw new Error('Invalid scratch destination');
      await fs.mkdir(scratchRoot,{recursive:true});await fs.mkdir(destination);created=true;
      const base=path.join(destination,'base'), scratch=path.join(destination,'work');
@@ -288,10 +291,11 @@ app.whenReady().then(()=>{
      for(const item of manifest){if(expected!==generation||hash(await fs.readFile(await checked(item.path)))!==item.fingerprint)throw new Error('Project files changed while preparing scratch; retry')}
      transaction(d,()=>{d.prepare('INSERT INTO pieces (job_id,base_path,scratch_path,manifest) VALUES (?,?,?,?)').run(id,base,scratch,JSON.stringify(manifest));
      d.prepare('INSERT INTO job_events (job_id,kind,detail,created) VALUES (?,?,?,?)').run(id,'scratch_created',`Snapshot of ${manifest.length} files`,new Date().toISOString());
-     d.prepare('UPDATE jobs SET status=? WHERE id=?').run('scratch ready; blocked: independent review unavailable',id)});
+     d.prepare('UPDATE jobs SET status=? WHERE id=?').run('scratch ready; blocked: independent review unavailable',id);d.prepare('DELETE FROM scratch_preparations WHERE job_id=?').run(id)});
      registered=true;return scratch;
    } catch(error) {
      if(created&&!registered&&path.dirname(destination)===scratchRoot)await fs.rm(destination,{recursive:true,force:true}).catch(()=>{});
+     if(expected===generation&&recorded&&!registered){transaction(d,()=>{d.prepare('DELETE FROM scratch_preparations WHERE job_id=?').run(id);d.prepare('UPDATE jobs SET status=? WHERE id=?').run('scratch preparation failed; retry required',id);d.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(id,'scratch_failed',error instanceof Error?error.message:String(error),new Date().toISOString())})}
      throw error;
    } finally {scratchLocks.delete(id)}
  });

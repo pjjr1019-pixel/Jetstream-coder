@@ -281,3 +281,7 @@ Per-file rename diffs include the old and new paths, and unstaging a rename rest
 ### 2026-11-14 — Codex scratch cleanup
 
 A failed scratch creation cleans up only the new, exclusively created temporary workspace. Tested using an oversized file in a disposable project; existing workspaces remain intact. V0.001 is unchanged. This handles ordinary creation failures, not process-crash cleanup.
+
+### 2026-11-14 — Codex interrupted scratch recovery
+
+Scratch preparation is recorded before copying. Reopening a project records interrupted attempts and preserves any incomplete directory for inspection; ordinary errors are recorded and clean up the workspace created by that attempt. V0.001 remains unchanged. Recovery was tested by injecting an interrupted record; a real process-kill test and production Apply recovery remain outstanding.
