@@ -229,3 +229,11 @@ Phil asked for continued work without routine questions. I am strengthening veri
 ### 2026-11-13 — Codex verification epoch progress
 
 Verification now tracks a change epoch so pause/resume or changes to command settings during a run invalidate it even if the prior values are restored before completion. V0.001 build and all six tests passed, including pause followed by resume during a running check. Files: `electron/main.ts`, `tests/desktop.test.mjs`, `CHANGELOG.md`, and this handoff. Apply and real independent review remain disabled and unfinished.
+
+### 2026-11-13 — Codex continuing V0.001 job history
+
+Phil requested continued work on partial features without routine questions. I am improving job search and recording verification outcomes. AI Apply remains disabled.
+
+### 2026-11-13 — Codex V0.001 job history progress
+
+Job search includes event kinds and details, and verification completion now records status, snapshot, and validity alongside verification evidence and job status in one SQLite transaction. `npm run build` and all six tests passed, including history search and outcome recording. Files: `electron/main.ts`, `src/main.tsx`, `tests/desktop.test.mjs`, `CHANGELOG.md`, and this handoff. AI Apply remains disabled; real review, approval, safe apply/rollback, crash recovery and other previously listed features remain incomplete. Keep V0.001 until Phil approves a change.
