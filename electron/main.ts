@@ -153,6 +153,14 @@ app.whenReady().then(()=>{
    try{await execFileAsync('git',['--literal-pathspecs','add','--',name],{cwd:project,timeout:10000,maxBuffer:1_000_000,windowsHide:true});}
    catch(e){throw new Error(`Could not stage file: ${(e as Error).message}`)}
  });
+ ipcMain.handle('project:git-unstage',async(_e,name:string)=>{
+   if(typeof name!=='string'||!name||!project)throw new Error('Open a file in a project first');const root=project,expected=generation;
+   await checked(name);if(expected!==generation)throw new Error('Project changed');
+   let hasHead=true;try{await execFileAsync('git',['rev-parse','--verify','HEAD'],{cwd:root,timeout:10000,windowsHide:true})}catch{hasHead=false}
+   if(expected!==generation)throw new Error('Project changed');
+   const args=hasHead?['--literal-pathspecs','restore','--staged','--',name]:['--literal-pathspecs','rm','--cached','--',name];
+   try{await execFileAsync('git',args,{cwd:root,timeout:10000,maxBuffer:1_000_000,windowsHide:true})}catch(e){throw new Error(`Could not unstage file: ${(e as Error).message}`)}
+ });
  ipcMain.handle('project:git-diff',async()=>{if(!project)throw new Error('Open a project first');try{const result=await execFileAsync('git',['-c','core.pager=cat','diff','--no-ext-diff','--no-textconv','--'],{cwd:project,timeout:10000,maxBuffer:2_000_000,windowsHide:true});const staged=await execFileAsync('git',['-c','core.pager=cat','diff','--cached','--no-ext-diff','--no-textconv','--'],{cwd:project,timeout:10000,maxBuffer:2_000_000,windowsHide:true});return `STAGED CHANGES\n${staged.stdout||'(none)'}\nUNSTAGED CHANGES\n${result.stdout||'(none)'}`;}catch{throw new Error('Git diff unavailable for this folder')}});
  ipcMain.handle('project:git',async()=>{if(!project) return '';try{return (await execFileAsync('git',['status','--short','--branch'],{cwd:project,timeout:10000,maxBuffer:1_000_000})).stdout;}catch{return 'Git status unavailable for this folder.';}});
  ipcMain.handle('jobs:list',(_e,query:string='')=>({jobs:database().prepare('SELECT * FROM jobs WHERE instr(lower(request),lower(?))>0 OR instr(lower(status),lower(?))>0 ORDER BY id DESC').all(typeof query==='string'?query.slice(0,200):'',typeof query==='string'?query.slice(0,200):''),paused:database().prepare("SELECT value FROM settings WHERE key='paused'").get()?.value==='true'}));

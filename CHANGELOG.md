@@ -2,6 +2,8 @@
 
 ## V0.001
 
+- Added unstage for the current file, including new repositories with no commits.
+
 - Added staging for the current saved file and search for recorded jobs.
 
 - Added source-control diff inspection and improved scratch snapshot and new-file conflict checks.
