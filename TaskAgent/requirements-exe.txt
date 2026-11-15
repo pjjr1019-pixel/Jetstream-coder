@@ -1,0 +1,5 @@
+websockets
+mss
+pillow
+# Build tool (Windows only, installed by build_exe.bat):
+# pyinstaller

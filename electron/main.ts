@@ -9,10 +9,13 @@ import {promisify} from 'node:util';
 import {fingerprintTree,fingerprintManifest} from './evidence';
 import {gateReasons} from './gate';
 import {prepareCheckpoint,inspectCheckpoint} from './checkpoint';
-import {readJournal} from './checkpoint-journal';
 import {runCheckpointTransaction} from './checkpoint-transaction';
 import {rollbackCheckpointFixture,recoverCheckpointFixture,inspectRecoveryFixture} from './checkpoint-fixture';
+import {TaskAgent} from './laptop-agent';
+import {MuseTunnel} from './muse-tunnel';
+import {createJetstreamJobApi, JOB_API_ACTOR, type JobAction, type JobApiStatus, type JetstreamJobApi} from './job-api';
 import os from 'node:os';
+import net from 'node:net';
 import ignore from 'ignore';
 import * as pty from 'node-pty';
 import ts from 'typescript';
@@ -22,6 +25,9 @@ const execFileAsync=promisify(execFile);
 let terminal:pty.IPty|undefined; let terminalSession=0; let verificationEpoch=0;
 let indexTail:Promise<void>=Promise.resolve();let indexState:{status:'idle'|'building'|'ready'|'error';message:string;indexed:number;skipped:number}={status:'idle',message:'Open a project',indexed:0,skipped:0};
 let win:BrowserWindow; let project=''; let db:DatabaseSync|undefined; let closeAllowed=false; let watcher:FSWatcher|undefined; let generation=0; let indexTimer:ReturnType<typeof setTimeout>|undefined;
+let editorStateGeneration=-1;let unsavedEditorFiles=new Set<string>();
+let taskAgent:TaskAgent|undefined;
+let jobApi:JetstreamJobApi|undefined;let jobApiLedger:DatabaseSync|undefined;let jobApiStartError:string|undefined;
 const ignored=new Set(['.git','node_modules','dist','dist-electron','build','.jetstream-coder']);
 const hash=(s:string|Buffer)=>crypto.createHash('sha256').update(s).digest('hex');
 function localUsage(value:{prompt_eval_count?:unknown;eval_count?:unknown}){const count=(x:unknown)=>typeof x==='number'&&Number.isSafeInteger(x)&&x>=0?x:null;return {promptTokens:count(value.prompt_eval_count),completionTokens:count(value.eval_count)}}
@@ -123,6 +129,16 @@ function startWatcher() {
 }
 function database() { if(!db) throw new Error('Open a project first'); return db; }
 function transaction<T>(d:DatabaseSync,work:()=>T):T {d.exec('BEGIN IMMEDIATE');try{const result=work();d.exec('COMMIT');return result}catch(error){d.exec('ROLLBACK');throw error}}
+type RecoveryFinding={jobId:number;kind:'checkpoint_recovery_required'|'checkpoint_inspection_failed';detail:string};
+async function checkpointFindings(d:DatabaseSync,jobId?:number):Promise<RecoveryFinding[]>{
+ const query='SELECT cp.id,cp.directory,lc.job_id FROM candidate_checkpoints cp JOIN local_candidates lc ON lc.id=cp.candidate_id';
+ const rows=(jobId===undefined?d.prepare(query).all():d.prepare(query+' WHERE lc.job_id=?').all(jobId)) as {id:number;directory:string;job_id:number}[];const findings:RecoveryFinding[]=[];
+ for(const row of rows){try{const state=await inspectRecoveryFixture(row.directory);if(state.needsInspection)findings.push({jobId:row.job_id,kind:'checkpoint_recovery_required',detail:JSON.stringify({checkpointId:row.id,state:state.state,fileStatus:state.fileStatus})})}catch(error){findings.push({jobId:row.job_id,kind:'checkpoint_inspection_failed',detail:JSON.stringify({checkpointId:row.id,directory:row.directory,error:error instanceof Error?error.message:String(error)})})}}return findings;
+}
+function recordCheckpointFindings(d:DatabaseSync,findings:RecoveryFinding[],recoveredJobId?:number,reconcileJobIds:number[]=[]){
+ transaction(d,()=>{for(const f of findings){if(!d.prepare('SELECT 1 FROM job_events WHERE job_id=? AND kind=? AND detail=?').get(f.jobId,f.kind,f.detail))d.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(f.jobId,f.kind,f.detail,new Date().toISOString())}
+ const ids=new Set([...findings.map(f=>f.jobId),...reconcileJobIds]);if(recoveredJobId!==undefined)ids.add(recoveredJobId);for(const id of ids){const entries=findings.filter(f=>f.jobId===id);if(!entries.length&&reconcileJobIds.includes(id)){const checkpointIds=(d.prepare('SELECT cp.id FROM candidate_checkpoints cp JOIN local_candidates lc ON lc.id=cp.candidate_id WHERE lc.job_id=? ORDER BY cp.id').all(id) as {id:number}[]).map(row=>row.id);const previous=(d.prepare("SELECT COUNT(*) AS count FROM job_events WHERE job_id=? AND kind='checkpoint_reconciled'").get(id) as {count:number}).count;const detail=JSON.stringify({episode:previous+1,checkpointIds,result:'all checkpoints inspect clean after reopen'});if(!d.prepare("SELECT 1 FROM job_events WHERE job_id=? AND kind='checkpoint_reconciled' AND detail=?").get(id,detail))d.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(id,'checkpoint_reconciled',detail,new Date().toISOString())}const status=entries.some(f=>f.kind==='checkpoint_inspection_failed')?'checkpoint inspection failed; apply blocked':entries.length?'checkpoint recovery required; apply blocked':'checkpoint recovered; apply blocked';d.prepare("UPDATE jobs SET status=? WHERE id=? AND status<>'cancelled'").run(status,id)}});
+}
 function createWindow(){
  win=new BrowserWindow({width:1450,height:900,minWidth:850,minHeight:600,backgroundColor:'#11151d',webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
  win.webContents.setWindowOpenHandler(()=>({action:'deny'}));
@@ -130,13 +146,29 @@ function createWindow(){
  win.on('close',e=>{if(!closeAllowed){e.preventDefault();win.webContents.send('close:request')}});
  void win.loadFile(path.join(__dirname,'../dist/index.html'));
 }
-app.whenReady().then(()=>{
+app.whenReady().then(async()=>{
+ taskAgent=new TaskAgent(path.join(app.getAppPath(),'TaskAgent'),undefined,path.join(os.homedir(),'Desktop','Deskhand','Deskhand-windows','Task-agent','agent_config.json'));
+ const museTunnel=new MuseTunnel(path.join(os.homedir(),'Desktop','Deskhand','Deskhand-windows','Task-agent','agent_config.json'));
+ const museDb=new DatabaseSync(path.join(app.getPath('userData'),'muse-chat.sqlite'));
+ museDb.exec("CREATE TABLE IF NOT EXISTS turns(id TEXT PRIMARY KEY, prompt TEXT NOT NULL, status TEXT NOT NULL, reply TEXT, error TEXT, created TEXT NOT NULL)");
+ ipcMain.handle('muse:send',async(_event,prompt:unknown)=>{
+  if(typeof prompt!=='string'||!prompt.trim()||Buffer.byteLength(prompt)>12000)throw new Error('Enter a message under 12 KB');
+  const id=crypto.randomUUID();museDb.prepare('INSERT INTO turns(id,prompt,status,created) VALUES(?,?,?,?)').run(id,prompt.trim(),'sending',new Date().toISOString());
+  try{await museTunnel.submit(id,prompt.trim());museDb.prepare('UPDATE turns SET status=? WHERE id=?').run('queued',id)}catch{museDb.prepare('UPDATE turns SET status=?,error=? WHERE id=?').run('uncertain','Delivery could not be confirmed; do not resend automatically.',id)}return id;
+ });
+ ipcMain.handle('muse:messages',async()=>{
+  const pending=museDb.prepare("SELECT id FROM turns WHERE status IN ('sending','queued','uncertain') ORDER BY created DESC LIMIT 20").all() as {id:string}[];
+  for(const row of pending){try{const reply=await museTunnel.reply(row.id);if(reply){museDb.prepare('UPDATE turns SET status=?,reply=?,error=? WHERE id=?').run(reply.error?'failed':'replied',reply.reply,reply.error,row.id);try{await museTunnel.ack(row.id)}catch{/* Reply is already durable locally; do not lose it if acknowledgement fails. */}}}catch{/* Retain unknown/queued state for a later check. */}}
+  return museDb.prepare('SELECT id,prompt,status,reply,error,created FROM turns ORDER BY created DESC LIMIT 50').all();
+ });
+ if(!process.env.NODE_TEST_CONTEXT&&!process.env.JETSTREAM_DISABLE_LAPTOP_AGENT)void taskAgent.start();
  let projectOpening=false;
  ipcMain.handle('project:open',async()=>{
   if(projectOpening)return null;projectOpening=true;try{
   const selection=await dialog.showOpenDialog(win,{properties:['openDirectory']}); if(selection.canceled||!selection.filePaths[0]) return null;
   const selected=await fs.realpath(selection.filePaths[0]);
-  ++verificationEpoch; ++generation; indexState={status:'idle',message:'Opening project',indexed:0,skipped:0}; watcher?.close(); if(indexTimer)clearTimeout(indexTimer); terminalSession++; if(terminal){terminal.kill(); terminal=undefined;win.webContents.send('terminal:exit',0)}
+  const sameProject=project&&path.resolve(project)===selected,previousGeneration=generation;
+  ++verificationEpoch; ++generation;if(sameProject&&editorStateGeneration===previousGeneration)editorStateGeneration=generation;else{editorStateGeneration=-1;unsavedEditorFiles.clear()} indexState={status:'idle',message:'Opening project',indexed:0,skipped:0}; watcher?.close(); if(indexTimer)clearTimeout(indexTimer); terminalSession++; if(terminal){terminal.kill(); terminal=undefined;win.webContents.send('terminal:exit',0)}
   await indexTail.catch(()=>{});
   const dataDir=path.join(app.getPath('userData'),'projects'); await fs.mkdir(dataDir,{recursive:true});
   const next=new DatabaseSync(path.join(dataDir,hash(selected)+'.sqlite'));
@@ -158,7 +190,9 @@ app.whenReady().then(()=>{
   transaction(next,()=>{const interrupted=next.prepare('SELECT job_id,kind,detail FROM local_inflight').all() as {job_id:number;kind:string;detail:string}[];for(const item of interrupted)next.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(item.job_id,'local_request_interrupted',JSON.stringify({kind:item.kind,detail:item.detail}),new Date().toISOString());next.prepare('DELETE FROM local_inflight').run()});
   transaction(next,()=>{const interrupted=next.prepare('SELECT job_id,path FROM candidate_preparations').all() as {job_id:number;path:string}[];for(const item of interrupted)next.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(item.job_id,'candidate_interrupted',`Candidate preparation stopped; incomplete files may remain at ${item.path}`,new Date().toISOString());next.prepare('DELETE FROM candidate_preparations').run()});
   transaction(next,()=>{const rows=next.prepare('SELECT job_id,candidate_id,directory FROM checkpoint_preparations').all() as {job_id:number;candidate_id:number;directory:string}[];for(const row of rows)next.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(row.job_id,'checkpoint_interrupted',JSON.stringify({candidateId:row.candidate_id,directory:row.directory}),new Date().toISOString());next.prepare('DELETE FROM checkpoint_preparations').run()});
-  db?.close();db=next;project=selected;indexState={status:'building',message:'Indexing project in the background',indexed:0,skipped:0};startWatcher();void rebuildIndex().then(()=>{if(!win.isDestroyed())win.webContents.send('project:changed')}).catch(()=>{if(!win.isDestroyed())win.webContents.send('project:changed')});return project;
+  const previouslyBlocked=(next.prepare("SELECT DISTINCT lc.job_id FROM candidate_checkpoints cp JOIN local_candidates lc ON lc.id=cp.candidate_id JOIN jobs j ON j.id=lc.job_id WHERE j.status IN ('checkpoint recovery required; apply blocked','checkpoint inspection failed; apply blocked')").all() as {job_id:number}[]).map(row=>row.job_id);
+  recordCheckpointFindings(next,await checkpointFindings(next),undefined,previouslyBlocked);
+  db?.close();db=next;project=selected;indexState={status:'building',message:'Indexing project in the background',indexed:0,skipped:0};startWatcher();void rebuildIndex().then(()=>{if(!win.isDestroyed())win.webContents.send('project:changed')}).catch(()=>{if(!win.isDestroyed())win.webContents.send('project:changed')});return {path:project,session:generation};
   }finally{projectOpening=false}
  });
  ipcMain.handle('project:index-status',()=>indexState);
@@ -171,6 +205,21 @@ app.whenReady().then(()=>{
    await rebuildIndex(expected);if(expected!==generation)throw new Error('Project changed');if(!win.isDestroyed())win.webContents.send('project:changed');
  });
  ipcMain.handle('project:files',files);
+ ipcMain.handle('project:unsaved-files',(event,session:unknown,names:unknown)=>{
+   if(event.sender!==win.webContents)throw new Error('Editor state may only be set by the application window');
+   if(session!==generation||projectOpening)throw new Error('Editor state belongs to an outdated project session');
+   if(!project||!Array.isArray(names)||names.length>1000)throw new Error('Invalid editor state');
+   const next=new Set<string>();
+   for(const name of names){
+     if(typeof name!=='string'||!name||name.length>1000||name.includes('\0')||path.isAbsolute(name)||/^[a-zA-Z]:/.test(name))throw new Error('Invalid unsaved editor path');
+     const parts=name.replace(/\\/g,'/').split('/');
+     if(parts.some(part=>!part||part==='.'||part==='..'))throw new Error('Invalid unsaved editor path');
+     const resolved=path.resolve(project,...parts),relative=path.relative(project,resolved);
+     if(!relative||relative==='..'||relative.startsWith('..'+path.sep)||path.isAbsolute(relative))throw new Error('Unsaved editor path is outside the project');
+     next.add(relative);
+   }
+   unsavedEditorFiles=next;editorStateGeneration=generation;
+ });
  ipcMain.handle('project:create-file',async(_e,name:string)=>{
    if(typeof name!=='string'||!name||name.length>1000||path.isAbsolute(name))throw new Error('Enter a relative project file path');
    const parts=name.replace(/\\/g,'/').split('/');if(parts.some(x=>!x||x==='.'||x==='..'||/[<>:"|?*\x00-\x1f]/.test(x)||/[. ]$/.test(x)||/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\.|$)/i.test(x)))throw new Error('Invalid file path');
@@ -277,13 +326,32 @@ app.whenReady().then(()=>{
  });
  ipcMain.handle('project:git-diff',async()=>{if(!project)throw new Error('Open a project first');try{const result=await execFileAsync('git',['-c','core.pager=cat','diff','--no-ext-diff','--no-textconv','--'],{cwd:project,timeout:10000,maxBuffer:2_000_000,windowsHide:true});const staged=await execFileAsync('git',['-c','core.pager=cat','diff','--cached','--no-ext-diff','--no-textconv','--'],{cwd:project,timeout:10000,maxBuffer:2_000_000,windowsHide:true});return `STAGED CHANGES\n${staged.stdout||'(none)'}\nUNSTAGED CHANGES\n${result.stdout||'(none)'}`;}catch{throw new Error('Git diff unavailable for this folder')}});
  ipcMain.handle('project:git',async()=>{if(!project) return '';try{return (await execFileAsync('git',['status','--short','--branch'],{cwd:project,timeout:10000,maxBuffer:1_000_000})).stdout;}catch{return 'Git status unavailable for this folder.';}});
+ function recordDeskhandAction(d:DatabaseSync,jobId:number,requestId:string,action:string,result:unknown){
+   d.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(jobId,'deskhand_action',JSON.stringify({requestId,actor:JOB_API_ACTOR,action,outcome:'completed',result}),new Date().toISOString());
+ }
+ function createJob(request:string,actor='user',requestId?:string){
+   if(typeof request!=='string'||!request.trim()||request.length>10000)throw new Error('Enter a job under 10,000 characters');
+   const d=database();let id=0;transaction(d,()=>{const created=new Date().toISOString();const result=d.prepare('INSERT INTO jobs (request,status,created) VALUES (?,?,?)').run(request.trim(),'blocked: coordinator unavailable',created);id=Number(result.lastInsertRowid);d.prepare('INSERT INTO job_events (job_id,kind,detail,created) VALUES (?,?,?,?)').run(id,'requested',request.trim(),created);if(actor===JOB_API_ACTOR&&requestId)recordDeskhandAction(d,id,requestId,'submit',{jobId:id})});return id;
+ }
+ function changeTeamPause(paused:boolean,actor='user',requestId?:string){
+   const d=database();++verificationEpoch;transaction(d,()=>{d.prepare("INSERT INTO settings (key,value) VALUES ('paused',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(String(paused));if(actor===JOB_API_ACTOR&&requestId){const jobs=d.prepare('SELECT id FROM jobs ORDER BY id').all() as {id:number}[];for(const job of jobs)recordDeskhandAction(d,job.id,requestId,paused?'pause':'resume',{paused})}});return true;
+ }
+ function validateJobCancellation(id:number){
+   if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid job');
+   const d=database();if(verifying.has(id)||scratchLocks.has(id))throw new Error('Wait for the current operation to finish before cancelling');
+   const job=d.prepare('SELECT status FROM jobs WHERE id=?').get(id) as {status:string}|undefined;if(!job)throw new Error('Job not found');if(job.status==='cancelled')throw new Error('Job is already cancelled');
+ }
+ function cancelJob(id:number,actor='user',requestId?:string){
+   validateJobCancellation(id);const d=database();transaction(d,()=>{d.prepare('UPDATE jobs SET status=? WHERE id=?').run('cancelled',id);d.prepare('UPDATE verification_runs SET valid=0 WHERE job_id=?').run(id);d.prepare('INSERT INTO job_events (job_id,kind,detail,created) VALUES (?,?,?,?)').run(id,'cancelled','Cancelled by user',new Date().toISOString());if(actor===JOB_API_ACTOR&&requestId)recordDeskhandAction(d,id,requestId,'cancel',{jobId:id})});
+   if(localRequestJob===id&&localRequestGeneration===generation)localRequest?.abort();return {jobId:id,status:'cancelled'};
+ }
+ function rejectCandidate(id:number,actor='user',requestId?:string){
+   if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid candidate');const d=database();const row=d.prepare('SELECT job_id FROM local_candidates WHERE id=?').get(id) as {job_id:number}|undefined;if(!row)throw new Error('Candidate not found');
+   transaction(d,()=>{d.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(row.job_id,'candidate_rejected',JSON.stringify({candidateId:id}),new Date().toISOString());d.prepare('UPDATE jobs SET status=? WHERE id=?').run('candidate rejected; apply blocked',row.job_id);if(actor===JOB_API_ACTOR&&requestId)recordDeskhandAction(d,row.job_id,requestId,'reject',{candidateId:id})});return {candidateId:id,status:'candidate rejected; apply blocked'};
+ }
  ipcMain.handle('jobs:list',(_e,query:string='')=>({jobs:database().prepare('SELECT * FROM jobs WHERE instr(lower(request),lower(?))>0 OR instr(lower(status),lower(?))>0 OR EXISTS (SELECT 1 FROM job_events WHERE job_events.job_id=jobs.id AND (instr(lower(job_events.kind),lower(?))>0 OR instr(lower(job_events.detail),lower(?))>0)) ORDER BY id DESC').all(...Array(4).fill(typeof query==='string'?query.slice(0,200):'')),paused:database().prepare("SELECT value FROM settings WHERE key='paused'").get()?.value==='true'}));
- ipcMain.handle('jobs:add',(_e,request:string)=>{if(typeof request!=='string'||!request.trim()||request.length>10000)throw new Error('Enter a job under 10,000 characters');const d=database(); transaction(d,()=>{const result=d.prepare('INSERT INTO jobs (request,status,created) VALUES (?,?,?)').run(request.trim(),'blocked: coordinator unavailable',new Date().toISOString());d.prepare('INSERT INTO job_events (job_id,kind,detail,created) VALUES (?,?,?,?)').run(Number(result.lastInsertRowid),'requested',request.trim(),new Date().toISOString())});return true;});
- ipcMain.handle('jobs:cancel',(_e,id:number)=>{
-   if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid job');const d=database();
-   if(verifying.has(id)||scratchLocks.has(id))throw new Error('Wait for the current operation to finish before cancelling');
-   transaction(d,()=>{const job=d.prepare('SELECT status FROM jobs WHERE id=?').get(id) as {status:string}|undefined;if(!job)throw new Error('Job not found');if(job.status==='cancelled')throw new Error('Job is already cancelled');d.prepare('UPDATE jobs SET status=? WHERE id=?').run('cancelled',id);d.prepare('UPDATE verification_runs SET valid=0 WHERE job_id=?').run(id);d.prepare('INSERT INTO job_events (job_id,kind,detail,created) VALUES (?,?,?,?)').run(id,'cancelled','Cancelled by user',new Date().toISOString())});
- });
+ ipcMain.handle('jobs:add',(_e,request:string)=>{createJob(request);return true;});
+ ipcMain.handle('jobs:cancel',(_e,id:number)=>cancelJob(id));
  ipcMain.handle('jobs:requeue',(_e,id:number)=>{
    if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid job');const d=database();
    transaction(d,()=>{const job=d.prepare('SELECT status FROM jobs WHERE id=?').get(id) as {status:string}|undefined;if(!job||job.status!=='cancelled')throw new Error('Only cancelled jobs can be requeued');const piece=d.prepare('SELECT job_id FROM pieces WHERE job_id=?').get(id);const status=piece?'scratch ready; blocked: independent review unavailable':'blocked: coordinator unavailable';d.prepare('UPDATE jobs SET status=? WHERE id=?').run(status,id);d.prepare('INSERT INTO job_events (job_id,kind,detail,created) VALUES (?,?,?,?)').run(id,'requeued','Requeued by user; checks must be run again',new Date().toISOString())});
@@ -411,12 +479,13 @@ app.whenReady().then(()=>{
    if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid job');
    return database().prepare('SELECT kind,detail,created FROM job_events WHERE job_id=? ORDER BY id').all(id);
  });
- ipcMain.handle('jobs:pause',(_e,paused:boolean)=>{++verificationEpoch;database().prepare("INSERT INTO settings (key,value) VALUES ('paused',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(String(!!paused));return true;});
- let localRequest:AbortController|undefined;
+ ipcMain.handle('jobs:pause',(_e,paused:boolean)=>changeTeamPause(!!paused));
+ let localRequest:AbortController|undefined,localRequestJob:number|undefined,localRequestGeneration:number|undefined;
+ const localError=(controller:AbortController,error:unknown)=>controller.signal.aborted?new Error(controller.signal.reason instanceof Error&&controller.signal.reason.message==='Local request timed out'?'Local request timed out':'Local request cancelled'):error;
  ipcMain.handle('ollama:ask',async(_e,model:string,prompt:string)=>{
    if(typeof model!=='string'||!model||model.length>200||typeof prompt!=='string'||!prompt.trim()||prompt.length>12000)throw new Error('Choose a model and enter a prompt under 12,000 characters');
    if(localRequest)throw new Error('A local request is already running');
-   const controller=new AbortController();localRequest=controller;const timeout=setTimeout(()=>controller.abort(),120000);
+   const controller=new AbortController();localRequest=controller;localRequestJob=undefined;localRequestGeneration=undefined;const timeout=setTimeout(()=>controller.abort(new Error('Local request timed out')),120000);
    try{
      const list=await fetch('http://127.0.0.1:11434/api/tags',{signal:controller.signal});if(!list.ok)throw new Error('Ollama is unavailable');
      const data=await list.json() as {models?:{name?:string}[]};if(!data.models?.some(x=>x.name===model))throw new Error('Selected model is not in the local model list');
@@ -425,7 +494,8 @@ app.whenReady().then(()=>{
      const result=await response.json() as {model?:unknown;done?:unknown;message?:{content?:unknown}};
      if(result.done!==true||result.model!==model||typeof result.message?.content!=='string')throw new Error('Incomplete or unexpected Ollama response');
      return result.message.content;
-   } finally {clearTimeout(timeout);localRequest=undefined;}
+   } catch(error) {throw localError(controller,error);
+   } finally {clearTimeout(timeout);if(localRequest===controller){localRequest=undefined;localRequestJob=undefined;localRequestGeneration=undefined}}
  });
  ipcMain.handle('ollama:propose',async(_e,id:number,model:string,name:string)=>{
    if(!Number.isSafeInteger(id)||id<1||typeof model!=='string'||!model||model.length>200||typeof name!=='string'||!name||path.isAbsolute(name))throw new Error('Choose a job, local model and scratch file');
@@ -443,7 +513,7 @@ app.whenReady().then(()=>{
    const sourceSnapshot=await fingerprintTree(piece.scratch_path);if(expected!==generation||epoch!==verificationEpoch)throw new Error('Project or pause state changed before proposal');
    if(hash(await fs.readFile(file))!==hash(bytes))throw new Error('Scratch file changed before proposal');if(expected!==generation||epoch!==verificationEpoch)throw new Error('Project or pause state changed before proposal');
    if(localRequest)throw new Error('A local request is already running');
-   const controller=new AbortController();localRequest=controller;const timeout=setTimeout(()=>controller.abort(),180000);let recorded=false,candidateRoot='';
+   const controller=new AbortController();localRequest=controller;localRequestJob=id;localRequestGeneration=expected;const timeout=setTimeout(()=>controller.abort(new Error('Local request timed out')),180000);let recorded=false,candidateRoot='';
    try {
      if(expected!==generation)throw new Error('Project changed');transaction(d,()=>{const detail=JSON.stringify({model,path:name}),created=new Date().toISOString();d.prepare('INSERT INTO local_inflight(job_id,kind,detail,created) VALUES(?,?,?,?)').run(id,'proposal',detail,created);d.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(id,'local_proposal_started',detail,created)});recorded=true;
      const list=await fetch('http://127.0.0.1:11434/api/tags',{signal:controller.signal});if(!list.ok)throw new Error('Ollama is unavailable');
@@ -476,35 +546,40 @@ app.whenReady().then(()=>{
      const finalJob=d.prepare('SELECT status FROM jobs WHERE id=?').get(id) as {status:string}|undefined;if(!finalJob||finalJob.status==='cancelled'||d.prepare("SELECT value FROM settings WHERE key='paused'").get()?.value==='true')throw new Error('Job cancelled or team paused during candidate preparation');
      let proposalId=0;transaction(d,()=>{const created=new Date().toISOString();const row=d.prepare('INSERT INTO local_proposals (job_id,path,model,digest,source_hash,source_content,proposed_content,explanation,created) VALUES (?,?,?,?,?,?,?,?,?)').run(id,name,model,String(selected.digest),hash(bytes),original,String(proposal.content),String(proposal.explanation),created);proposalId=Number(row.lastInsertRowid);d.prepare('INSERT INTO job_events (job_id,kind,detail,created) VALUES (?,?,?,?)').run(id,'local_proposal',JSON.stringify({proposalId,model,digest:selected.digest,path:name,sourceHash:hash(bytes),proposalHash:hash(String(proposal.content)),explanation:proposal.explanation,usage:localUsage(result)}),created);d.prepare('INSERT INTO local_candidates(job_id,proposal_id,root_path,source_hash,candidate_hash,created) VALUES(?,?,?,?,?,?)').run(id,proposalId,candidateRoot,sourceSnapshot,candidateSnapshot,created);d.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(id,'candidate_created',JSON.stringify({proposalId,model,digest:selected.digest,path:name,sourceSnapshot,candidateSnapshot}),created);d.prepare('DELETE FROM candidate_preparations WHERE job_id=?').run(id);d.prepare('DELETE FROM local_inflight WHERE job_id=?').run(id)});
      return {id:proposalId,model,path:name,explanation:proposal.explanation,content:proposal.content};
-   } catch(error) {if(expected===generation&&recorded){transaction(d,()=>{d.prepare('DELETE FROM local_inflight WHERE job_id=?').run(id);d.prepare('DELETE FROM candidate_preparations WHERE job_id=?').run(id);d.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(id,'local_proposal_failed',(error instanceof Error?error.message:String(error))+(candidateRoot?`; incomplete candidate retained at ${candidateRoot}`:''),new Date().toISOString())})}throw error;
-   } finally {clearTimeout(timeout);localRequest=undefined;}
+   } catch(error) {const failure=localError(controller,error);if(expected===generation&&recorded){transaction(d,()=>{d.prepare('DELETE FROM local_inflight WHERE job_id=?').run(id);d.prepare('DELETE FROM candidate_preparations WHERE job_id=?').run(id);d.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(id,'local_proposal_failed',(failure instanceof Error?failure.message:String(failure))+(candidateRoot?`; incomplete candidate retained at ${candidateRoot}`:''),new Date().toISOString())})}throw failure;
+   } finally {clearTimeout(timeout);if(localRequest===controller){localRequest=undefined;localRequestJob=undefined;localRequestGeneration=undefined}}
  });
  ipcMain.handle('jobs:latest-candidate',(_e,id:number)=>{if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid job');return database().prepare('SELECT c.id,c.proposal_id AS proposalId,c.source_hash AS sourceHash,c.candidate_hash AS candidateHash,p.model,p.digest,p.path,p.explanation,c.created FROM local_candidates c JOIN local_proposals p ON p.id=c.proposal_id WHERE c.job_id=? ORDER BY c.id DESC LIMIT 1').get(id)||null});
- ipcMain.handle('jobs:candidate-diff',async(_e,id:number)=>{
+ async function candidateDiff(id:number){
    if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid candidate');const expected=generation;const row=database().prepare('SELECT root_path,source_hash,candidate_hash FROM local_candidates WHERE id=?').get(id) as {root_path:string;source_hash:string;candidate_hash:string}|undefined;if(!row)throw new Error('Candidate not found');
    const source=path.join(row.root_path,'source'),candidate=path.join(row.root_path,'work');if(await fingerprintTree(source)!==row.source_hash||await fingerprintTree(candidate)!==row.candidate_hash)throw new Error('Candidate or its source changed; recorded diff is stale');if(expected!==generation)throw new Error('Project changed');
    let diff='';try{diff=(await execFileAsync('git',['diff','--no-index','--no-ext-diff','--no-textconv','--',source,candidate],{timeout:15000,maxBuffer:2000000,windowsHide:true})).stdout||'No changes in candidate.'}catch(e){const err=e as Error & {code?:number;stdout?:string};if(err.code!==1)throw new Error('Could not generate candidate diff: '+err.message);diff=err.stdout||'Candidate changed'}if(await fingerprintTree(source)!==row.source_hash||await fingerprintTree(candidate)!==row.candidate_hash||expected!==generation)throw new Error('Candidate, source, or project changed during diff; retry');return diff;
- });
+ }
+ ipcMain.handle('jobs:candidate-diff',(_e,id:number)=>candidateDiff(id));
  async function candidateEvidence(id:number){
    if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid candidate');const d=database(),expected=generation,epoch=verificationEpoch;
    const c=d.prepare('SELECT c.*,p.model,p.digest,p.path,p.explanation,j.request,j.status FROM local_candidates c JOIN local_proposals p ON p.id=c.proposal_id JOIN jobs j ON j.id=c.job_id WHERE c.id=?').get(id) as {job_id:number;root_path:string;source_hash:string;candidate_hash:string;model:string;digest:string;path:string;explanation:string;request:string;status:string}|undefined;if(!c)throw new Error('Candidate not found');
    const source=path.join(c.root_path,'source'),work=path.join(c.root_path,'work');const sourceHash=await fingerprintTree(source),candidateHash=await fingerprintTree(work);
    const review=d.prepare('SELECT * FROM candidate_reviews WHERE candidate_id=? ORDER BY id DESC LIMIT 1').get(id) as {id:number;source_hash:string;candidate_hash:string;author_digest:string;reviewer:string;reviewer_digest:string;verdict:string;findings:string}|undefined;
    const check=d.prepare('SELECT * FROM verification_runs WHERE candidate_id=? ORDER BY id DESC LIMIT 1').get(id) as {id:number;before_hash:string;after_hash:string;build_command:string;test_command:string;results:string;valid:number}|undefined;
+   const rawCheckResults:unknown=check?JSON.parse(check.results):[],checkResults=Array.isArray(rawCheckResults)?rawCheckResults.filter((result):result is {kind:string;command:string;exit:number}=>typeof result==='object'&&result!==null&&typeof result.kind==='string'&&typeof result.command==='string'&&Number.isSafeInteger(result.exit)):[];
    const get=(key:string)=>String(d.prepare('SELECT value FROM settings WHERE key=?').get(key)?.value||'');const reasons:string[]=[];
+   const completeResults=Array.isArray(rawCheckResults)&&rawCheckResults.length===2&&checkResults.length===2&&['build','test'].every(kind=>{const matches=checkResults.filter(result=>result.kind===kind);return matches.length===1&&matches[0].exit===0&&matches[0].command===get(`${kind}_command`)});
+   const checksPassed=!!check&&check.valid===1&&check.before_hash===candidateHash&&check.after_hash===candidateHash&&!!get('build_command')&&!!get('test_command')&&check.build_command===get('build_command')&&check.test_command===get('test_command')&&completeResults;
+   if(editorStateGeneration!==expected)reasons.push('Unsaved editor state is unknown; reopen the project before approval');else if(unsavedEditorFiles.size)reasons.push(`Save or discard unsaved editor changes before approval: ${[...unsavedEditorFiles].join(', ')}`);
    if(sourceHash!==c.source_hash||candidateHash!==c.candidate_hash)reasons.push('Candidate or source changed');if(c.status==='cancelled')reasons.push('Job is cancelled');if((d.prepare("SELECT detail FROM job_events WHERE job_id=? AND kind='candidate_rejected'").all(c.job_id) as {detail:string}[]).some(e=>{try{return JSON.parse(e.detail).candidateId===id}catch{return false}}))reasons.push('Candidate was rejected; create a new candidate');if(get('paused')==='true')reasons.push('Team is paused');
    if(!review||review.verdict!=='approve'||review.source_hash!==sourceHash||review.candidate_hash!==candidateHash||review.author_digest!==c.digest||!review.reviewer_digest||review.reviewer_digest===c.digest||review.reviewer.toLowerCase()===c.model.toLowerCase())reasons.push('A matching approved review by a different model is required');
-   if(!check||!check.valid||check.before_hash!==candidateHash||check.after_hash!==candidateHash||!get('build_command')||!get('test_command')||check.build_command!==get('build_command')||check.test_command!==get('test_command'))reasons.push('Matching successful build and test checks are required');
+   if(!checksPassed)reasons.push('Matching successful build and test checks are required');
    const piece=d.prepare('SELECT manifest FROM pieces WHERE job_id=?').get(c.job_id) as {manifest:string}|undefined;const original=piece?(JSON.parse(piece.manifest) as {path:string;fingerprint:string}[]).find(x=>x.path===c.path):undefined;if(!original||hash(await fs.readFile(path.join(source,c.path)))!==original.fingerprint)reasons.push('Candidate source differs from the original project baseline');
    const conflicts=await scratchConflicts(c.job_id);if(conflicts.length)reasons.push(`Project files changed: ${conflicts.join(', ')}`);
    let diff='';try{diff=(await execFileAsync('git',['diff','--no-index','--no-ext-diff','--no-textconv','--',source,work],{timeout:15000,maxBuffer:2000000,windowsHide:true})).stdout}catch(error){const e=error as Error & {code?:number;stdout?:string};if(e.code!==1)throw error;diff=e.stdout||''}if(!diff)reasons.push('No reviewable diff');
    if(await fingerprintTree(source)!==sourceHash||await fingerprintTree(work)!==candidateHash||expected!==generation||epoch!==verificationEpoch)throw new Error('Candidate or project changed while preparing approval');
-   return {candidateId:id,jobId:c.job_id,request:c.request,path:c.path,author:c.model,authorDigest:c.digest,explanation:c.explanation,sourceHash,candidateHash,review:review||null,check:check?{...check,results:JSON.parse(check.results)}:null,conflicts,diff,reasons};
+   return {candidateId:id,jobId:c.job_id,request:c.request,path:c.path,author:c.model,authorDigest:c.digest,explanation:c.explanation,sourceHash,candidateHash,checksPassed,review:review||null,check:check?{...check,results:checkResults}:null,conflicts,diff,reasons};
  }
  ipcMain.handle('jobs:candidate-evidence',(_e,id:number)=>candidateEvidence(id));
  ipcMain.handle('jobs:approve-candidate',async(_e,id:number,sourceHash:string,candidateHash:string,reviewId:number,checkId:number)=>{
-   const expected=generation,epoch=verificationEpoch;const evidence=await candidateEvidence(id);if(evidence.reasons.length||evidence.sourceHash!==sourceHash||evidence.candidateHash!==candidateHash||evidence.review?.id!==reviewId||evidence.check?.id!==checkId)throw new Error('Evidence changed or is incomplete; review again');if(expected!==generation||epoch!==verificationEpoch)throw new Error('Project or settings changed; review again');
-   const d=database();const latestReview=d.prepare('SELECT id FROM candidate_reviews WHERE candidate_id=? ORDER BY id DESC LIMIT 1').get(id);const latestCheck=d.prepare('SELECT id,valid FROM verification_runs WHERE candidate_id=? ORDER BY id DESC LIMIT 1').get(id);const job=d.prepare('SELECT status FROM jobs WHERE id=?').get(evidence.jobId);const rejected=(d.prepare("SELECT detail FROM job_events WHERE job_id=? AND kind='candidate_rejected'").all(evidence.jobId) as {detail:string}[]).some(e=>{try{return JSON.parse(e.detail).candidateId===id}catch{return false}});if(rejected||latestReview?.id!==reviewId||latestCheck?.id!==checkId||latestCheck?.valid!==1||job?.status==='cancelled'||d.prepare("SELECT value FROM settings WHERE key='paused'").get()?.value==='true')throw new Error('Evidence changed; review again');transaction(d,()=>{const created=new Date().toISOString();d.prepare('INSERT INTO candidate_approvals(candidate_id,source_hash,candidate_hash,review_id,check_id,created) VALUES(?,?,?,?,?,?)').run(id,sourceHash,candidateHash,reviewId,checkId,created);d.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(evidence.jobId,'candidate_approved',JSON.stringify({candidateId:id,sourceHash,candidateHash,reviewId,checkId}),created)});return true;
+   const expected=generation,epoch=verificationEpoch;const evidence=await candidateEvidence(id);if(evidence.reasons.length||evidence.sourceHash!==sourceHash||evidence.candidateHash!==candidateHash||evidence.review?.id!==reviewId||evidence.check?.id!==checkId)throw new Error('Evidence changed or is incomplete; review again');if(expected!==generation||epoch!==verificationEpoch)throw new Error('Project or settings changed; review again');if(editorStateGeneration!==expected||unsavedEditorFiles.size)throw new Error('Unsaved editor changes or unknown editor state; approval blocked');
+   const d=database();const latestReview=d.prepare('SELECT id FROM candidate_reviews WHERE candidate_id=? ORDER BY id DESC LIMIT 1').get(id);const latestCheck=d.prepare('SELECT id,valid FROM verification_runs WHERE candidate_id=? ORDER BY id DESC LIMIT 1').get(id);const job=d.prepare('SELECT status FROM jobs WHERE id=?').get(evidence.jobId);const rejected=(d.prepare("SELECT detail FROM job_events WHERE job_id=? AND kind='candidate_rejected'").all(evidence.jobId) as {detail:string}[]).some(e=>{try{return JSON.parse(e.detail).candidateId===id}catch{return false}});if(rejected||latestReview?.id!==reviewId||latestCheck?.id!==checkId||latestCheck?.valid!==1||job?.status==='cancelled'||d.prepare("SELECT value FROM settings WHERE key='paused'").get()?.value==='true'||editorStateGeneration!==expected||unsavedEditorFiles.size)throw new Error('Evidence changed; review again');transaction(d,()=>{const created=new Date().toISOString();d.prepare('INSERT INTO candidate_approvals(candidate_id,source_hash,candidate_hash,review_id,check_id,created) VALUES(?,?,?,?,?,?)').run(id,sourceHash,candidateHash,reviewId,checkId,created);d.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(evidence.jobId,'candidate_approved',JSON.stringify({candidateId:id,sourceHash,candidateHash,reviewId,checkId}),created)});return true;
  });
  ipcMain.handle('jobs:prepare-checkpoint',async(_e,id:number)=>{
    if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid candidate');const d=database(),expected=generation,epoch=verificationEpoch,root=project;
@@ -513,21 +588,39 @@ app.whenReady().then(()=>{
    if(!approval||approval.source_hash!==evidence.sourceHash||approval.candidate_hash!==evidence.candidateHash||approval.review_id!==evidence.review.id||approval.check_id!==evidence.check.id)throw new Error('Approve the current evidence first');
    const c=d.prepare('SELECT c.root_path,p.source_content,p.proposed_content FROM local_candidates c JOIN local_proposals p ON p.id=c.proposal_id WHERE c.id=?').get(id) as {root_path:string;source_content:string;proposed_content:string};const source=path.join(c.root_path,'source'),work=path.join(c.root_path,'work');const sourceFile=path.join(source,evidence.path),workFile=path.join(work,evidence.path);
    const before=await fs.readFile(sourceFile),after=await fs.readFile(workFile);if(hash(before)!==hash(c.source_content)||hash(after)!==hash(c.proposed_content))throw new Error('Candidate content changed; review again');if(await fingerprintTree(source)!==evidence.sourceHash||await fingerprintTree(work)!==evidence.candidateHash)throw new Error('Candidate changed; review again');if(expected!==generation||epoch!==verificationEpoch)throw new Error('Project or settings changed');
-   const base=path.join(app.getPath('userData'),'checkpoints',hash(root));await fs.mkdir(base,{recursive:true});if(expected!==generation||epoch!==verificationEpoch)throw new Error('Project or settings changed');const checkpointId=crypto.randomUUID(),directory=path.join(base,checkpointId);d.prepare('INSERT INTO checkpoint_preparations(candidate_id,job_id,directory,created) VALUES(?,?,?,?)').run(id,evidence.jobId,directory,new Date().toISOString());let result;try{result=await prepareCheckpoint(root,evidence.path,hash(before),after,base,checkpointId)}catch(error){if(expected===generation){transaction(d,()=>{d.prepare('DELETE FROM checkpoint_preparations WHERE candidate_id=?').run(id);d.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(evidence.jobId,'checkpoint_failed',JSON.stringify({candidateId:id,directory,error:String(error)}),new Date().toISOString())})}throw error}
+   const base=path.join(app.getPath('userData'),'checkpoints',hash(root));await fs.mkdir(base,{recursive:true});if(expected!==generation||epoch!==verificationEpoch)throw new Error('Project or settings changed');const checkpointId=crypto.randomUUID(),directory=path.join(base,checkpointId);d.prepare('INSERT INTO checkpoint_preparations(candidate_id,job_id,directory,created) VALUES(?,?,?,?)').run(id,evidence.jobId,directory,new Date().toISOString());try{const result=await prepareCheckpoint(root,evidence.path,hash(before),after,base,checkpointId);
    if(expected!==generation||epoch!==verificationEpoch)throw new Error(`Project changed; prepared checkpoint retained at ${result.directory}`);
    const finalEvidence=await candidateEvidence(id);if(finalEvidence.reasons.length||finalEvidence.sourceHash!==evidence.sourceHash||finalEvidence.candidateHash!==evidence.candidateHash||finalEvidence.review?.id!==approval.review_id||finalEvidence.check?.id!==approval.check_id)throw new Error(`Evidence changed; prepared checkpoint retained at ${result.directory}`);
-   const latest=d.prepare('SELECT id FROM candidate_approvals WHERE candidate_id=? ORDER BY id DESC LIMIT 1').get(id);if(expected!==generation||epoch!==verificationEpoch||latest?.id!==approval.id)throw new Error(`Approval changed; prepared checkpoint retained at ${result.directory}`);
+   const latest=d.prepare('SELECT id FROM candidate_approvals WHERE candidate_id=? ORDER BY id DESC LIMIT 1').get(id);if(expected!==generation||epoch!==verificationEpoch||latest?.id!==approval.id||editorStateGeneration!==expected||unsavedEditorFiles.size)throw new Error(`Approval or editor state changed; prepared checkpoint retained at ${result.directory}`);
    let savedCheckpointId=0;transaction(d,()=>{const created=new Date().toISOString();const row=d.prepare('INSERT INTO candidate_checkpoints(candidate_id,approval_id,directory,created) VALUES(?,?,?,?)').run(id,approval.id,result.directory,created);savedCheckpointId=Number(row.lastInsertRowid);d.prepare('DELETE FROM checkpoint_preparations WHERE candidate_id=?').run(id);d.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(evidence.jobId,'checkpoint_prepared',JSON.stringify({candidateId:id,checkpointId:savedCheckpointId,directory:result.directory}),created)});return {id:savedCheckpointId,status:'before'};
+   }catch(error){if(expected===generation){transaction(d,()=>{d.prepare('DELETE FROM checkpoint_preparations WHERE candidate_id=? AND directory=?').run(id,directory);d.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(evidence.jobId,'checkpoint_failed',JSON.stringify({candidateId:id,directory,error:String(error)}),new Date().toISOString())})}throw error}
  });
  ipcMain.handle('jobs:latest-checkpoint',(_e,id:number)=>{if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid candidate');return database().prepare('SELECT id,created FROM candidate_checkpoints WHERE candidate_id=? ORDER BY id DESC LIMIT 1').get(id)||null});
  ipcMain.handle('jobs:checkpoint-status',async(_e,id:number)=>{if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid checkpoint');const expected=generation;const row=database().prepare('SELECT directory FROM candidate_checkpoints WHERE id=?').get(id) as {directory:string}|undefined;if(!row)throw new Error('Checkpoint not found');const inspection=await inspectRecoveryFixture(row.directory);if(expected!==generation)throw new Error('Project changed');return {status:inspection.fileStatus,state:inspection.state,needsInspection:inspection.needsInspection,directory:row.directory}});
- ipcMain.handle('jobs:receipt',async(_e,id:number)=>{
+ async function jobReceipt(id:number){
    if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid job');const d=database(),expected=generation;const job=d.prepare('SELECT request,status,created FROM jobs WHERE id=?').get(id) as {request:string;status:string;created:string}|undefined;if(!job)throw new Error('Job not found');
    const candidate=d.prepare('SELECT id FROM local_candidates WHERE job_id=? ORDER BY id DESC LIMIT 1').get(id) as {id:number}|undefined;const lines=[`Job #${id}: ${job.request}`,`Created: ${job.created}`,`Status: ${job.status}`];
-   if(candidate){const e=await candidateEvidence(candidate.id);lines.push(`Candidate #${candidate.id}: ${e.path}`,`Author: ${e.author}`,`Reviewer: ${e.review?`${e.review.reviewer} · ${e.review.verdict} · ${e.review.findings}`:'Unavailable'}`);lines.push(`Checks: ${e.check?e.check.results.map((x:{kind:string;exit:number})=>`${x.kind}: ${x.exit===0?'passed':'failed'}`).join(', '):'Unavailable'}`);const a=d.prepare('SELECT * FROM candidate_approvals WHERE candidate_id=? ORDER BY id DESC LIMIT 1').get(candidate.id) as {source_hash:string;candidate_hash:string;review_id:number;check_id:number;created:string}|undefined;const current=!!a&&e.reasons.length===0&&a.source_hash===e.sourceHash&&a.candidate_hash===e.candidateHash&&a.review_id===e.review?.id&&a.check_id===e.check?.id;lines.push(`Approval: ${current?`current (${a!.created})`:a?'recorded but not current':'not recorded'}`);if(e.reasons.length)lines.push(`Outstanding: ${e.reasons.join('; ')}`);const checkpoint=d.prepare('SELECT id,directory FROM candidate_checkpoints WHERE candidate_id=? ORDER BY id DESC LIMIT 1').get(candidate.id) as {id:number;directory:string}|undefined;if(checkpoint){try{const state=await inspectCheckpoint(checkpoint.directory);const journal=await readJournal(checkpoint.directory);lines.push(`Checkpoint #${checkpoint.id}: ${journal.at(-1)} · target ${state.status}`)}catch{lines.push(`Checkpoint #${checkpoint.id}: unavailable or corrupt`)}}}else lines.push('Candidate: not created');
-   const applied=d.prepare("SELECT detail FROM job_events WHERE job_id=? AND kind='disposable_apply' ORDER BY id DESC LIMIT 1").get(id) as {detail:string}|undefined;if(applied){try{const record=JSON.parse(applied.detail) as {state:string;results:{kind:string;exit:number}[]};lines.push(`Disposable test Apply: ${record.state}`);lines.push(`Post-apply checks: ${record.results.map(x=>`${x.kind}: ${x.exit===0?'passed':'failed'}`).join(', ')||'unavailable'}`)}catch{lines.push('Disposable test Apply: record unavailable')}}
+   if(candidate){
+     const e=await candidateEvidence(candidate.id),results=e.check?.results||[];
+     const checkDetails=['build','test'].map(kind=>{const matches=results.filter((x:{kind:string})=>x.kind===kind);return `${kind}: ${matches.length===1?`exit ${matches[0].exit}`:'missing'}`});
+     lines.push(`Candidate #${candidate.id}: ${e.path}`,`Author: ${e.author}`,`Reviewer: ${e.review?`${e.review.reviewer} · ${e.review.verdict} · ${e.review.findings}`:'Unavailable'}`,`Checks: ${e.checksPassed?'passed':e.check?'not passed':'unavailable'} (${checkDetails.join(', ')})`);
+     const a=d.prepare('SELECT * FROM candidate_approvals WHERE candidate_id=? ORDER BY id DESC LIMIT 1').get(candidate.id) as {source_hash:string;candidate_hash:string;review_id:number;check_id:number;created:string}|undefined;
+     const current=!!a&&e.reasons.length===0&&a.source_hash===e.sourceHash&&a.candidate_hash===e.candidateHash&&a.review_id===e.review?.id&&a.check_id===e.check?.id;
+     lines.push(`Approval: ${current?`current (${a!.created})`:a?'recorded but not current':'not recorded'}`);
+     if(e.reasons.length)lines.push(`Outstanding: ${e.reasons.join('; ')}`);
+     const checkpoint=d.prepare('SELECT id,directory FROM candidate_checkpoints WHERE candidate_id=? ORDER BY id DESC LIMIT 1').get(candidate.id) as {id:number;directory:string}|undefined;
+     if(checkpoint){try{const state=await inspectRecoveryFixture(checkpoint.directory);lines.push(`Checkpoint #${checkpoint.id}: ${state.state} · target ${state.fileStatus}${state.needsInspection?' · recovery inspection required':''}`)}catch{lines.push(`Checkpoint #${checkpoint.id}: unavailable or corrupt`)}}
+   }else lines.push('Candidate: not created');
+   const applied=d.prepare("SELECT detail FROM job_events WHERE job_id=? AND kind='disposable_apply' ORDER BY id DESC LIMIT 1").get(id) as {detail:string}|undefined;
+   if(applied){try{
+     const record=JSON.parse(applied.detail) as {state:string;results?:{kind:string;exit:number}[]},results=Array.isArray(record.results)?record.results:[],complete=results.length===2&&['build','test'].every(kind=>{const matches=results.filter(x=>x.kind===kind);return matches.length===1&&matches[0].exit===0});
+     const details=['build','test'].map(kind=>{const matches=results.filter(x=>x.kind===kind);return `${kind}: ${matches.length===1?`exit ${matches[0].exit}`:'missing'}`});
+     const passed=record.state==='checks_passed'&&complete;
+     lines.push(`Disposable test Apply: ${record.state}`,`Post-apply checks: ${passed?'passed':'not passed'} (${record.state}; ${details.join(', ')})`);
+   }catch{lines.push('Disposable test Apply: record unavailable')}}
    if(expected!==generation)throw new Error('Project changed while preparing receipt');lines.push('Project Apply: unavailable');return lines.join('\n');
- });
+ }
+ ipcMain.handle('jobs:receipt',(_e,id:number)=>jobReceipt(id));
  async function disposableTestOnly(root:string){
    if(process.env.JETSTREAM_DISPOSABLE_APPLY_TEST!=='1')throw new Error('Production Apply is unavailable');const temp=await fs.realpath(os.tmpdir()),projectRoot=await fs.realpath(root),data=await fs.realpath(app.getPath('userData'));for(const item of [projectRoot,data]){const rel=path.relative(temp,item);if(!rel||rel==='..'||rel.startsWith('..'+path.sep)||path.isAbsolute(rel))throw new Error('Disposable Apply tests require project and app data under the temporary directory')}
  }
@@ -541,9 +634,17 @@ app.whenReady().then(()=>{
    const results:{kind:string;exit:number;output:string}[]=[];const checks=async()=>{for(const [kind,command] of [['build',check.build_command],['test',check.test_command]]){if(expected!==generation||epoch!==verificationEpoch)return false;try{const r=await execFileAsync('powershell.exe',['-NoLogo','-NoProfile','-NonInteractive','-Command',`$ErrorActionPreference = 'Stop'; & { ${command} }; if (-not $?) { exit 1 }; if ($null -ne $LASTEXITCODE) { exit $LASTEXITCODE }`],{cwd:root,timeout:120000,maxBuffer:2000000,windowsHide:true});results.push({kind,exit:0,output:r.stdout+r.stderr})}catch(error){const e=error as Error & {code?:number;stdout?:string;stderr?:string};results.push({kind,exit:typeof e.code==='number'?e.code:-1,output:(e.stdout||'')+(e.stderr||'')});return false}}return expected===generation&&epoch===verificationEpoch};
    const result=await runCheckpointTransaction(checkpoint.directory,{authorize,checks});if(expected===generation)transaction(d,()=>{d.prepare('UPDATE jobs SET status=? WHERE id=?').run(`disposable apply ${result.state}`,evidence.jobId);d.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(evidence.jobId,'disposable_apply',JSON.stringify({candidateId:id,checkpointId:checkpoint.id,state:result.state,results}),new Date().toISOString())});return {state:result.state,results,checkpointId:checkpoint.id};
  });
- ipcMain.handle('jobs:disposable-recovery',async(_e,id:number)=>{if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid checkpoint');const root=project;await disposableTestOnly(root);const row=database().prepare('SELECT directory FROM candidate_checkpoints WHERE id=?').get(id) as {directory:string}|undefined;if(!row)throw new Error('Checkpoint not found');const info=await inspectCheckpoint(row.directory);if(path.resolve(info.record.project).toLowerCase()!==path.resolve(root).toLowerCase())throw new Error('Checkpoint project mismatch');const state=await inspectRecoveryFixture(row.directory);if(!state.needsInspection)throw new Error('Checkpoint does not require recovery');return recoverCheckpointFixture(row.directory)});
+ ipcMain.handle('jobs:disposable-recovery',async(_e,id:number)=>{
+   if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid checkpoint');const root=project,d=database(),expected=generation;await disposableTestOnly(root);
+   const row=d.prepare('SELECT cp.directory,lc.job_id FROM candidate_checkpoints cp JOIN local_candidates lc ON lc.id=cp.candidate_id WHERE cp.id=?').get(id) as {directory:string;job_id:number}|undefined;if(!row)throw new Error('Checkpoint not found');
+   const info=await inspectCheckpoint(row.directory);if(path.resolve(info.record.project).toLowerCase()!==path.resolve(root).toLowerCase())throw new Error('Checkpoint project mismatch');
+   const state=await inspectRecoveryFixture(row.directory);if(!state.needsInspection)throw new Error('Checkpoint does not require recovery');
+   const result=await recoverCheckpointFixture(row.directory);if(expected!==generation)throw new Error('Project changed during checkpoint recovery');
+   const findings=await checkpointFindings(d,row.job_id);if(expected!==generation)throw new Error('Project changed during checkpoint recovery');d.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(row.job_id,'checkpoint_recovered',JSON.stringify({checkpointId:id,result}),new Date().toISOString());recordCheckpointFindings(d,findings,row.job_id);
+   return result;
+ });
  ipcMain.handle('jobs:disposable-rollback',async(_e,id:number)=>{if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid checkpoint');const root=project;await disposableTestOnly(root);const row=database().prepare('SELECT directory FROM candidate_checkpoints WHERE id=?').get(id) as {directory:string}|undefined;if(!row)throw new Error('Checkpoint not found');const info=await inspectCheckpoint(row.directory);if(path.resolve(info.record.project).toLowerCase()!==path.resolve(root).toLowerCase())throw new Error('Checkpoint project mismatch');return rollbackCheckpointFixture(row.directory)});
- ipcMain.handle('jobs:reject-candidate',(_e,id:number)=>{if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid candidate');const d=database();const row=d.prepare('SELECT job_id FROM local_candidates WHERE id=?').get(id) as {job_id:number}|undefined;if(!row)throw new Error('Candidate not found');transaction(d,()=>{d.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(row.job_id,'candidate_rejected',JSON.stringify({candidateId:id}),new Date().toISOString());d.prepare('UPDATE jobs SET status=? WHERE id=?').run('candidate rejected; apply blocked',row.job_id)});return true});
+ ipcMain.handle('jobs:reject-candidate',(_e,id:number)=>rejectCandidate(id));
  ipcMain.handle('jobs:open-candidate',async(_e,id:number)=>{if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid candidate');const row=database().prepare('SELECT root_path FROM local_candidates WHERE id=?').get(id) as {root_path:string}|undefined;if(!row)throw new Error('Candidate not found');const err=await shell.openPath(path.join(row.root_path,'work'));if(err)throw new Error(err)});
  ipcMain.handle('ollama:latest-proposal',(_e,id:number)=>{
    if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid job');
@@ -560,7 +661,7 @@ app.whenReady().then(()=>{
    let diff='';try{diff=(await execFileAsync('git',['diff','--no-index','--no-ext-diff','--no-textconv','--',source,work],{timeout:15000,maxBuffer:2000000,windowsHide:true})).stdout}catch(e){const err=e as Error & {code?:number;stdout?:string};if(err.code!==1)throw new Error('Candidate diff unavailable');diff=err.stdout||''}if(!diff)throw new Error('Candidate has no reviewable changes');
    if(expected!==generation||epoch!==verificationEpoch)throw new Error('Project or pause state changed before review');
    if(localRequest)throw new Error('A local request is already running');
-   const controller=new AbortController();localRequest=controller;const timeout=setTimeout(()=>controller.abort(),180000);let recorded=false;
+   const controller=new AbortController();localRequest=controller;localRequestJob=row.job_id;localRequestGeneration=expected;const timeout=setTimeout(()=>controller.abort(new Error('Local request timed out')),180000);let recorded=false;
    try{
      if(expected!==generation)throw new Error('Project changed');transaction(d,()=>{const detail=JSON.stringify({proposalId:id,model}),created=new Date().toISOString();d.prepare('INSERT INTO local_inflight(job_id,kind,detail,created) VALUES(?,?,?,?)').run(row.job_id,'review',detail,created);d.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(row.job_id,'proposal_review_started',detail,created)});recorded=true;
      const list=await fetch('http://127.0.0.1:11434/api/tags',{signal:controller.signal});if(!list.ok)throw new Error('Ollama is unavailable');
@@ -579,8 +680,8 @@ app.whenReady().then(()=>{
      const job=d.prepare('SELECT status FROM jobs WHERE id=?').get(row.job_id) as {status:string}|undefined;if(!job||job.status==='cancelled')throw new Error('Job was cancelled');
      transaction(d,()=>{const created=new Date().toISOString();d.prepare('INSERT INTO local_proposal_reviews (proposal_id,model,digest,verdict,findings,created) VALUES (?,?,?,?,?,?)').run(id,model,String(reviewer.digest),String(review.verdict),String(review.findings),created);d.prepare('INSERT INTO candidate_reviews(candidate_id,source_hash,candidate_hash,author_digest,reviewer,reviewer_digest,verdict,findings,created) VALUES (?,?,?,?,?,?,?,?,?)').run(candidate.id,candidate.source_hash,candidate.candidate_hash,row.digest,model,String(reviewer.digest),String(review.verdict),String(review.findings),created);d.prepare('INSERT INTO job_events (job_id,kind,detail,created) VALUES (?,?,?,?)').run(row.job_id,'proposal_review',JSON.stringify({proposalId:id,author:row.model,authorDigest:row.digest,reviewer:model,reviewerDigest:reviewer.digest,verdict:review.verdict,findings:review.findings,usage:localUsage(result)}),created);d.prepare('DELETE FROM local_inflight WHERE job_id=?').run(row.job_id)});
      return {model,verdict:review.verdict,findings:review.findings};
-   }catch(error){if(expected===generation&&recorded){transaction(d,()=>{d.prepare('DELETE FROM local_inflight WHERE job_id=?').run(row.job_id);d.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(row.job_id,'proposal_review_failed',error instanceof Error?error.message:String(error),new Date().toISOString())})}throw error;
-   }finally{clearTimeout(timeout);localRequest=undefined}
+   }catch(error){const failure=localError(controller,error);if(expected===generation&&recorded){transaction(d,()=>{d.prepare('DELETE FROM local_inflight WHERE job_id=?').run(row.job_id);d.prepare('INSERT INTO job_events(job_id,kind,detail,created) VALUES(?,?,?,?)').run(row.job_id,'proposal_review_failed',failure instanceof Error?failure.message:String(failure),new Date().toISOString())})}throw failure;
+   }finally{clearTimeout(timeout);if(localRequest===controller){localRequest=undefined;localRequestJob=undefined;localRequestGeneration=undefined}}
  });
  ipcMain.handle('ollama:cancel',()=>{localRequest?.abort()});
  ipcMain.handle('providers:local-usage',()=>{
@@ -589,16 +690,113 @@ app.whenReady().then(()=>{
    for(const row of rows){try{const data=JSON.parse(row.detail) as {model?:unknown;reviewer?:unknown;usage?:{promptTokens?:unknown;completionTokens?:unknown}};const model=row.kind==='proposal_review'?data.reviewer:data.model;if(typeof model!=='string')continue;const total=totals.get(model)||{model,attempts:0,reported:0,promptTokens:0,completionTokens:0};if(row.kind.endsWith('_started'))total.attempts++;else if(typeof data.usage?.promptTokens==='number'&&Number.isSafeInteger(data.usage.promptTokens)&&data.usage.promptTokens>=0&&typeof data.usage.completionTokens==='number'&&Number.isSafeInteger(data.usage.completionTokens)&&data.usage.completionTokens>=0){total.reported++;total.promptTokens+=data.usage.promptTokens;total.completionTokens+=data.usage.completionTokens}totals.set(model,total)}catch{/* Older or malformed records remain unknown. */}}
    return [...totals.values()].map(x=>({...x,unknown:Math.max(0,x.attempts-x.reported)}));
  });
+ const jobApiOperations={
+   project:()=>project?{id:hash(path.resolve(project)),name:path.basename(project),status:'open'}:null,
+   jobs:(query:string)=>{const d=database();const value=query.trim();return {jobs:d.prepare("SELECT id,request,status,created FROM jobs WHERE instr(lower(request),lower(?))>0 OR instr(lower(status),lower(?))>0 OR EXISTS (SELECT 1 FROM job_events WHERE job_events.job_id=jobs.id AND (instr(lower(job_events.kind),lower(?))>0 OR instr(lower(job_events.detail),lower(?))>0)) ORDER BY id DESC").all(...Array(4).fill(value)),paused:d.prepare("SELECT value FROM settings WHERE key='paused'").get()?.value==='true'}},
+   job:async(id:number)=>{
+     const d=database();const job=d.prepare('SELECT id,request,status,created FROM jobs WHERE id=?').get(id);if(!job)return null;
+     const history=(d.prepare('SELECT kind,detail,created FROM job_events WHERE job_id=? ORDER BY id').all(id) as {kind:string;detail:string;created:string}[]).map(event=>{
+       if(event.kind!=='build'&&event.kind!=='test')return event;
+       try{const check=JSON.parse(event.detail) as {exit?:unknown};return {...event,detail:JSON.stringify({exit:check.exit})}}catch{return {...event,detail:'Check result unavailable'}}
+     });
+     const candidate=d.prepare('SELECT c.id,c.source_hash AS sourceHash,c.candidate_hash AS candidateHash,p.model,p.digest,p.explanation,c.created FROM local_candidates c JOIN local_proposals p ON p.id=c.proposal_id WHERE c.job_id=? ORDER BY c.id DESC LIMIT 1').get(id) as {id:number;sourceHash:string;candidateHash:string;model:string;digest:string;explanation:string;created:string}|undefined;
+     let evidence=null;
+     if(candidate){const inspected=await candidateEvidence(candidate.id),check=inspected.check;evidence={...candidate,diff:await candidateDiff(candidate.id),review:inspected.review,checks:check?{id:check.id,valid:check.valid===1,results:check.results.map(result=>({kind:result.kind,exit:result.exit}))}:null,checksPassed:inspected.checksPassed,blockedReasons:inspected.reasons};}
+     return {job,history,candidate:evidence,receipt:await jobReceipt(id),paused:d.prepare("SELECT value FROM settings WHERE key='paused'").get()?.value==='true',applyAvailable:false};
+   },
+   validateAction:(action:JobAction)=>{
+     database();
+     if(action.action==='cancel')validateJobCancellation(action.jobId);
+     if(action.action==='reject'){const row=database().prepare('SELECT job_id FROM local_candidates WHERE id=?').get(action.candidateId) as {job_id:number}|undefined;if(!row)throw new Error('Candidate not found');const previous=(database().prepare("SELECT detail FROM job_events WHERE job_id=? AND kind='candidate_rejected'").all(row.job_id) as {detail:string}[]).some(event=>{try{return JSON.parse(event.detail).candidateId===action.candidateId}catch{return true}});if(previous)throw new Error('Candidate was already rejected');}
+   },
+   executeAction:(action:JobAction,actor:string)=>{
+     if(actor!==JOB_API_ACTOR)throw new Error('Unknown Deskhand API actor');
+     if(action.action==='submit')return {jobId:createJob(action.request,actor,action.requestId)};
+     if(action.action==='pause'||action.action==='resume')return {paused:action.action==='pause',updated:changeTeamPause(action.action==='pause',actor,action.requestId)};
+     if(action.action==='cancel')return cancelJob(action.jobId,actor,action.requestId);
+     if(action.action==='reject')return rejectCandidate(action.candidateId,actor,action.requestId);
+     throw new Error('Unsupported Deskhand job action');
+   },
+ };
+ function jobApiProvider(){
+   const status:JobApiStatus|undefined=jobApi?.status();
+   if(!status)return {name:'Jetstream Job API',status:'Unavailable',detail:jobApiStartError||'Local companion API has not started.'};
+   return {name:'Jetstream Job API',status:status.status==='listening'?'Available':'Unavailable',detail:status.status==='listening'?`Authenticated API v${status.apiVersion} at ${status.host}:${status.port}. Token is kept in the main-process companion descriptor under app data; it is not exposed to the renderer. Deskhand adapter and phone controls are not yet connected.`:status.error||'Local companion API is stopped.'};
+ }
  ipcMain.handle('providers:list',async()=>{
    let local={name:'Ollama',status:'Unavailable',detail:'Local service did not respond. No local model work is enabled.'};
    try {const response=await fetch('http://127.0.0.1:11434/api/tags',{signal:AbortSignal.timeout(3000)});if(!response.ok)throw new Error('Service unavailable');
      const payload=await response.json() as {models?:{name?:unknown}[]};const names=Array.isArray(payload.models)?payload.models.map(x=>x.name).filter((x):x is string=>typeof x==='string').slice(0,30):[];
      local={name:'Ollama',status:'Connected',detail:names.length?`Models available: ${names.join(', ')}. Manual questions and single-file scratch proposals are available; automatic job execution is not enabled.`:'Service reachable; no models reported. Job execution is not enabled.'};
    } catch{/* service is offline or inaccessible */}
-   return [{name:'Muse / Jett',status:'Unavailable',detail:'No verified coordinator interface or usage data.'},{name:'GPT accounts',status:'Unavailable',detail:'No supported account integration verified.'},local];
+   return [{name:'Muse / Jett',status:'Unavailable',detail:'No verified coordinator interface or usage data.'},{name:'GPT accounts',status:'Unavailable',detail:'No supported account integration verified.'},local,taskAgent!.status(),jobApiProvider()];
  });
- ipcMain.on('close:confirm',()=>{closeAllowed=true;win.close()}); createWindow();
+ ipcMain.handle('task-agent:start',()=>taskAgent?.start());
+ ipcMain.handle('task-agent:stop',()=>taskAgent?.stop());
+ let deskhandStarting:Promise<void>|undefined;
+ async function deskhandCommand(command:Record<string,unknown>){
+   const local=process.env.LOCALAPPDATA;
+   if(!local)throw new Error('Windows app data is unavailable');
+   const config=path.resolve(local,'JetstreamCoder','Deskhand-verification');
+   const suffix=crypto.createHash('sha256').update(config.toUpperCase()).digest('hex').toUpperCase().slice(0,16);
+   const pipe=String.raw`\\.\pipe\Deskhand.Windows.App.SingleInstance.`+suffix+'.Desktop';
+   const exchange=()=>new Promise<any>((resolve,reject)=>{
+     const socket=net.createConnection(pipe);let buffer='';
+     socket.setEncoding('utf8');
+     socket.setTimeout(command.operation==='assistant'?65000:25000,()=>socket.destroy(new Error('Deskhand connection timed out; check history before retrying an action')));
+     socket.on('connect',()=>socket.write(JSON.stringify(command)+'\n'));
+     socket.on('error',reject);
+     socket.on('end',()=>reject(new Error('Deskhand closed the connection before returning a result')));
+     socket.on('data',chunk=>{buffer+=chunk.toString();if(buffer.length>2000000){socket.destroy(new Error('Deskhand response too large'));return}if(buffer.includes('\n')){socket.end();try{const reply=JSON.parse(buffer.split('\n')[0]);if(!reply.ok)reject(new Error(reply.error));else resolve(reply.result)}catch(error){reject(error)}}});
+   });
+   try{return await exchange()}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error}
+   if(!deskhandStarting)deskhandStarting=(async()=>{
+     const root=app.getAppPath();
+     const options=[['Deskhand/Start-Deskhand.ps1','Deskhand/Deskhand.exe'],['integrations/deskhand/Start-Deskhand.ps1','integrations/deskhand/windows/Deskhand.Windows.App/bin/Release/net8.0-windows/Deskhand.exe']];
+     for(const [scriptName,hostName] of options){
+       const script=path.join(root,scriptName),host=path.join(root,hostName);
+       try{await Promise.all([fs.access(script),fs.access(host)])}catch{continue}
+       await execFileAsync('powershell.exe',['-NoProfile','-NonInteractive','-File',script,'-EmbeddedUI','-HostExe',host],{windowsHide:true,timeout:15000});return;
+     }
+     throw new Error('The embedded Deskhand backend is missing.');
+   })();
+   try{await deskhandStarting;for(let i=0;i<40;i++){await new Promise(resolve=>setTimeout(resolve,250));try{return await exchange()}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error}}throw new Error('Close the older Deskhand verification host and try again.')}finally{deskhandStarting=undefined}
+ }
+ ipcMain.handle('deskhand:control',async(event,command:Record<string,unknown>)=>{
+   if(event.sender!==win.webContents||!command||typeof command.operation!=='string'||JSON.stringify(command).length>8192)throw new Error('Invalid desktop control');
+   if(command.operation==='startup'){
+     if(typeof command.enabled!=='boolean')throw new Error('Invalid startup setting');
+     app.setLoginItemSettings({openAtLogin:command.enabled,path:process.execPath,args:app.isPackaged?[]:[app.getAppPath()]});
+     return app.getLoginItemSettings().openAtLogin;
+   }
+   if(command.operation==='features'){
+     const result=await deskhandCommand(command);
+     result.settings.startWithWindows=app.getLoginItemSettings().openAtLogin;
+     return result;
+   }
+   return deskhandCommand(command);
+ });
+ ipcMain.handle('deskhand:login',async event=>{
+   if(event.sender!==win.webContents)throw new Error('Invalid sign-in request');
+   const result=await deskhandCommand({operation:'login'});
+   if(result.url){const url=new URL(result.url);if(url.protocol!=='https:'||url.hostname!=='login.tailscale.com'||url.username||url.password||url.port)throw new Error('Unexpected Tailscale sign-in address');await shell.openExternal(url.href)}
+   return true;
+ });
+ ipcMain.handle('deskhand:pair-phone',async event=>{
+   if(event.sender!==win.webContents)throw new Error('Invalid pairing request');
+   return deskhandCommand({operation:'pair'});
+ });
+ // Keep an already paired phone reachable without opening local Settings.
+ // Test instances must never start the real companion or its network node.
+ if(!process.env.NODE_TEST_CONTEXT&&!process.env.JETSTREAM_DISABLE_LAPTOP_AGENT)
+   void deskhandCommand({operation:'status'}).catch(error=>console.warn('Embedded phone connection unavailable:',error.message));
+ ipcMain.handle('task-agent:folder',()=>shell.openPath(path.join(app.getAppPath(),'TaskAgent')));
+ ipcMain.on('close:confirm',()=>{closeAllowed=true;win.close()});
+ const userData=app.getPath('userData');jobApiLedger=new DatabaseSync(path.join(userData,'job-api-actions.sqlite'));
+ try{jobApi=await createJetstreamJobApi(userData,jobApiLedger,jobApiOperations);await jobApi.start();jobApiStartError=undefined}catch(error){jobApiStartError=error instanceof Error?error.message:'Could not start Jetstream Job API';}
+ createWindow();
 });
-app.on('window-all-closed',()=>{++generation; watcher?.close(); if(indexTimer)clearTimeout(indexTimer); terminalSession++;terminal?.kill(); db?.close();app.quit()});
+app.on('window-all-closed',()=>{++generation; watcher?.close(); if(indexTimer)clearTimeout(indexTimer); terminalSession++;terminal?.kill();void (async()=>{try{await jobApi?.close()}catch(error){jobApiStartError=error instanceof Error?error.message:'Could not stop Jetstream Job API'}db?.close();jobApiLedger?.close();app.quit()})()});
+app.on('before-quit',()=>{taskAgent?.stop();void jobApi?.close().catch(error=>{jobApiStartError=error instanceof Error?error.message:'Could not stop Jetstream Job API'})});
 
 

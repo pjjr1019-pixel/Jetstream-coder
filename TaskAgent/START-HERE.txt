@@ -1,0 +1,53 @@
+Laptop Agent v3 — Portable GUI Launcher — START HERE
+=====================================================
+Everything is in this one zip. Unzip it to ONE folder, e.g. C:\agent\
+and keep everything there. Do not split the files across folders.
+
+FASTEST WAY (no build needed)
+------------------------------
+1. Install Python 3.10+ (tick "Add python.exe to PATH")
+   and Tailscale (install + sign in).
+2. Double-click: python laptop_launcher.py
+   (Right-click it > Open with > Python, if double-clicking
+   opens it in an editor instead.)
+   The launcher window opens. Skip to step 4.
+
+TO GET DOUBLE-CLICK EXEs INSTEAD
+--------------------------------
+2b. Double-click build_launcher.bat (takes a minute or two).
+    It builds LaptopAgentV2.exe AND LaptopLauncher.exe and
+    puts both in this folder.
+    Then double-click LaptopLauncher.exe.
+
+3. In the launcher, open the Settings tab:
+     Token: click Generate
+     Host:  click Auto-detect (fills in the 100.x.x.x Tailscale IP;
+            on this PC it was 100.123.38.60)
+     Remote control: turn ON (it asks you to confirm)
+     Click Save settings.
+   If anything is wrong the launcher tells you in plain words —
+   fix it, Save again.
+
+4. Open the Status tab and click Start.
+   The light turns green and the Log tab shows:
+     HTTP listening on <tailscale-ip>:8899
+     BRIDGE listening on ws://<tailscale-ip>:8765/v1/bridge
+   If it stops straight away, the reason stays in the Log tab —
+   read it, fix it, Start again. The window never closes on error.
+
+5. Click "Copy status for Jett" and paste it to Jett.
+   That text has the IP, ports, flag and running state —
+   never the token. Send the token separately, securely
+   (secure vault / secure page). NEVER paste the token in chat.
+
+6. To stop: click Stop, or just close the launcher window.
+   Closing it stops the agent too. That is the kill-switch.
+
+TROUBLESHOOTING — see the Instructions tab in the launcher.
+It covers: window closes on error, EXE in dist\, config not
+found, token still CHANGE-ME, flag OFF = refused, SmartScreen
+unsigned warning, port in use, Tailscale not running.
+
+NOTE: no ready-made Windows EXE is in this zip — a Windows EXE
+has to be built on Windows (step 2b). The Python files do the
+exact same thing without any build.

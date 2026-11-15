@@ -2,6 +2,18 @@
 
 ## V0.001
 
+- Rebuilt Android embedded networking for16KB native alignment, added final APK verification and source provenance, corrected Muse sign-in/delivery readiness reporting, and prevented connection-status overlap with phone toolbar controls. V0.001 retained.
+
+- Preserved the original Deskhand Android viewer, file and agents drawers, orientation handling and controls. Moved Jobs into the viewer toolbar to keep chat unobstructed. Added the remaining standalone desktop connection, assistant, runtime, diagnostics and Muse-access settings using the embedded backend.
+
+- Phone connection now lives inside Settings, with a top-right shortcut. Added embedded network login, QR pairing approvals, phone controls and remote-access controls. Verified desktop streaming and submit/pause/resume/cancel on the paired Android phone using a disposable project.
+
+Candidate approval and checkpoint preparation now fail closed when editor buffer state is unknown or contains unsaved changes.
+
+- Record a reconciliation for each separate checkpoint recovery episode without duplicating clean reopen events.
+
+- Recovery status now stays blocked until every checkpoint for the job is resolved, including repeated warnings.
+
 - Project opening now prevents repeated clicks and builds the search index in the background.
 
 - Job reports include recorded disposable-test Apply and post-apply check outcomes.

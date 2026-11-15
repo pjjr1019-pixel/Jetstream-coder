@@ -1,0 +1,11 @@
+# The chat service uses the Python standard library, plus the third-party
+# packages below. (The old "stdlib-only" claim was wrong: deskhand_bridge.py
+# imports websockets, PIL and mss.)
+#
+# Versions pinned to the versions staged in vendor/jettpad-dependencies/
+# (websockets 16.1.1, Pillow 13.0.0). mss is NOT in the vendored tree —
+# it is a PC-side re-stage item (see the B2-F report); leave it unpinned
+# until the re-stage records which version the PC provides.
+websockets==16.1.1
+Pillow==13.0.0
+mss

@@ -1,0 +1,1230 @@
+{
+  "description": "Isolated development sources, not installed releases. Imported before Jetstream adapter edits.",
+  "files": [
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Directory.Build.props",
+      "imported": "integrations/deskhand/windows/Directory.Build.props",
+      "sha256": "16eb7928747d4877676e655d2b7e7680119270868090f9c7674fbd214d3645c9"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Contracts\\Deskhand.Contracts.csproj",
+      "imported": "integrations/deskhand/windows/Deskhand.Contracts/Deskhand.Contracts.csproj",
+      "sha256": "e151f959964eb450a5b86b72765e3f9c505645fa9516eae485743d2b43911c8e"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Contracts\\DesktopBrowser.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Contracts/DesktopBrowser.cs",
+      "sha256": "cb1d975649977fccfdfcf01d1350a98b9bf4b8813bf3b3b8eff776db8ff95705"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Core\\Deskhand.Core.csproj",
+      "imported": "integrations/deskhand/windows/Deskhand.Core/Deskhand.Core.csproj",
+      "sha256": "2421a2a2a3d4d91eafc15543480f5826a3a4166190b9b5e944df91a60254f1f8"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Core\\Secure.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Core/Secure.cs",
+      "sha256": "f0cf1070f5fb78b90ffc30be9b1ef2270b92f5111115ad679d03a02075e36c01"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Core\\Serial.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Core/Serial.cs",
+      "sha256": "863a358c7e449f968c38d81199512030f9328846e9d9ddc6d21f708d461a3a99"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Integration.Specs\\Deskhand.Integration.Specs.csproj",
+      "imported": "integrations/deskhand/windows/Deskhand.Integration.Specs/Deskhand.Integration.Specs.csproj",
+      "sha256": "2f74b17e3be66407ce28722efd65bbb4c18c94c9bf3fedc8c805480c0f91ee2c"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Integration.Specs\\Program.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Integration.Specs/Program.cs",
+      "sha256": "5e38ccfea17acbfca4a50f3ee4950196b857f633d1fe49634f4954687c5519f0"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Relay\\Deskhand.Relay.csproj",
+      "imported": "integrations/deskhand/windows/Deskhand.Relay/Deskhand.Relay.csproj",
+      "sha256": "56a0ea1413047a986c2bf5cdb2e2090bd729d990ce53ffe50e5098aae0e43722"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Relay\\RelayEndpoint.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Relay/RelayEndpoint.cs",
+      "sha256": "ec42b1a5a32571c60f01d59a53018c74c2f3977f071db06786d669a9fccfe966"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\AdaptiveStream.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/AdaptiveStream.cs",
+      "sha256": "333c3d2fb2f5350e127f826c2c42bf240039cf4c2364e6356e2ea4dc3ea31a4f"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\AndroidUpdates.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/AndroidUpdates.cs",
+      "sha256": "a8d968a58307a0cda297c27beb67de1d70a7c7b5892bfd991215910e6e4446bb"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\AssistantAccessibility.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/AssistantAccessibility.cs",
+      "sha256": "d9f6432f0df2e12494e8dd87a20e70c21bd2f7224af0bf4e0b983186952a993d"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\AssistantActionEngine.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/AssistantActionEngine.cs",
+      "sha256": "c297af7c7fd4e7f2355559fb1f1a44b8255e683029dd4899a3f454fc27c80faa"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\AssistantApprovals.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/AssistantApprovals.cs",
+      "sha256": "e0f2af0fad6c2920941b6784c0ac0665b8dc5687d7a75c5d70c810b83f66dce2"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\AssistantClient.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/AssistantClient.cs",
+      "sha256": "74c64a455eea0569a2be31a1bd2f15ae05705dce1b8e9d6f42251e81bb8a02bd"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\AssistantCommands.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/AssistantCommands.cs",
+      "sha256": "8c811990a77b2544a0de0ad959dcd3b0cb114388753abfe2f48ddbaa2c1bc339"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\AssistantLaunchVerification.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/AssistantLaunchVerification.cs",
+      "sha256": "d74fdc6d4a90166c572e14182f6e6562b7b40dc587fc88e4ff98d83938279845"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\AssistantPointer.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/AssistantPointer.cs",
+      "sha256": "f1463aaae372a91bf9d9f234fcfa7ea6fadcd8ddc0d393581526c83c0297f25e"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\AssistantScreenshot.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/AssistantScreenshot.cs",
+      "sha256": "958b631ea1eeba22fb23da9665ff29a762a460c46249c6fedcb31c2f2a0c6892"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\AssistantWindowPolicy.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/AssistantWindowPolicy.cs",
+      "sha256": "4d41daebee02f89843c81c11b35dba8c32e5677696463052f9b94247d5e1a81b"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\AssistantWindows.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/AssistantWindows.cs",
+      "sha256": "5ec0f5cc8725944b9ea78b1e4f8c396e4135cc75345a07f973b250475bc67a72"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\BuiltInRelay.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/BuiltInRelay.cs",
+      "sha256": "0c8819fef557770a0326883d47bcbb40a8973739319cbd15d14ecb885387ac37"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\ChatPanel.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/ChatPanel.cs",
+      "sha256": "13bc1d7ea9d30fcc175b729018eb40b4b91d70e432a5d6342b1fd998bf85da49"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\Config.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/Config.cs",
+      "sha256": "ba305f0d9769107fd9df65883b3108dfcc2c924852e2be6736fe7afc1e895526"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\deskhand.ico",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/deskhand.ico",
+      "sha256": "65155b8ab96c6f8b33517c868fe69d861830fd0b05f08af7ebe470c8799042c0"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\Deskhand.Windows.App.csproj",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/Deskhand.Windows.App.csproj",
+      "sha256": "1a41a91a02275a336e7cd87af78ec4b60c1b78d9e9603f6305bad1a04c2992b3"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\DesktopBrowser.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/DesktopBrowser.cs",
+      "sha256": "fbf019381e1f934235f1b6cf388d338319c483f323ab09a3df04d20dc86b16fb"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\DesktopGlobalUsings.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/DesktopGlobalUsings.cs",
+      "sha256": "8cc27e25fc569c6eba243f0ebc635ba382f429b482ef3054bc307ebf4ff024fa"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\EmbeddedConnectionForm.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/EmbeddedConnectionForm.cs",
+      "sha256": "8f3da7afb47f6bd46eafbbf9e04f8c33230136d9b3b3620d8cda13f431f2397d"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\EmbeddedWindowsNode.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/EmbeddedWindowsNode.cs",
+      "sha256": "81a0e7979a1c8234242748072fce3c37409c109be0d95e77d521b88515708360"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\ForegroundWindows.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/ForegroundWindows.cs",
+      "sha256": "7d07e62dab103b6306662c3e62cfcbf8d2d1ba40400b7c4687bb09fac0b60e3f"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\FullPcAccess.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/FullPcAccess.cs",
+      "sha256": "b3d5c1f6bca2a0d080dde6a53be01582c432be0ffc4ed285d3a3fea7f57fa5a8"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\GpuVideoEncoder.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/GpuVideoEncoder.cs",
+      "sha256": "2d7bcd38d31771efc355fd4f3a071c2acb2db52638d6841d48132abbac9bb125"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\H264AccessUnits.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/H264AccessUnits.cs",
+      "sha256": "6bf6074cda8d547d1e588c0643df78f85f155052a80868c2ce04e38aebe44aad"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\HostEngine.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/HostEngine.cs",
+      "sha256": "f838338822563805449bd04749e95ce932134a8422f9aa03615611129d4b6863"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\HybridStream.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/HybridStream.cs",
+      "sha256": "f43be3e92b31268c67f87aeccc4a292c152895c69534ee5b9ecfdd91ddd46ff1"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\InputInjector.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/InputInjector.cs",
+      "sha256": "8f035fb94da68335d305249fe2fcf6c532a151a45bcc43814b45ed191142cb6e"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\JettJournal.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/JettJournal.cs",
+      "sha256": "30803bfd5c749ff07285436ba4529ae4495298edd06db116a73e18012389c10f"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\JettProtocol.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/JettProtocol.cs",
+      "sha256": "6948f4a13b15077bd65d7031fbf77bfce519a9d88d0fc5a0d07b6109ab81c8b4"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\MainForm.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/MainForm.cs",
+      "sha256": "8ea388e58b4f687b123016dbc018ae540e772a29e9aa7a5a398b417eb61787c6"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\MuseConnectionForm.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/MuseConnectionForm.cs",
+      "sha256": "586bd951cf7495c56c2b2370326bc285c67120c44325c888340a65753adf884f"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\PairForm.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/PairForm.cs",
+      "sha256": "ed1e3fc7307018ae3887be70b5b5159adf2792a9c9c8fed8a79fa0c19d3e2bcf"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\PhoneDisplay.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/PhoneDisplay.cs",
+      "sha256": "b8e15a99758824ec3350aa7d0c202fd1bc08aa6f443d4142f2edd9387aa50f60"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\PixelChangeDetector.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/PixelChangeDetector.cs",
+      "sha256": "26386ad8d6c4c6e93bc414be1900c1bbe4398b64b3be829a3aa13a5f65cd135f"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\Program.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/Program.cs",
+      "sha256": "aa934f5f7594adb64e5a3f1c3612d28dc5d4e72d3b95a85be0c7d1bc63ce647a"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\RelayHealth.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/RelayHealth.cs",
+      "sha256": "1f9f487bd8377bfe4245c03dd430b9e7ec223b488d22f99eeac51d16cd00dd24"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\RelayLink.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/RelayLink.cs",
+      "sha256": "5584fe5d73c475e64004696d6fc54649c5ee95636443f7c7eedebc77dfc8d218"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\ScreenCapturer.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/ScreenCapturer.cs",
+      "sha256": "d9578ac45fc6cdd1d21806d15ee016ae98f756baaf89cea74c0558fff501019a"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\TailscaleAddress.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/TailscaleAddress.cs",
+      "sha256": "ea071cbb6a34fb668f7d1299ed616bec94e0f385f30652a16aab616393529c0b"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\TextWindowActivator.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/TextWindowActivator.cs",
+      "sha256": "d00e6137e069ec449f15833a2af082f10d93e98172d7182485e1a1c6984001d3"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\VideoWindow.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/VideoWindow.cs",
+      "sha256": "fa550490989259301fceb55a157b679ad354b7bc4d1e44e96491b2e73ff0b277"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\WindowLaunchHistory.cs",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/WindowLaunchHistory.cs",
+      "sha256": "eaf4f452b2f2e99eecd328f400217c5617d6748bf0abc8837ca60b4ab71b2b65"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\build.gradle.kts",
+      "imported": "integrations/deskhand/android/build.gradle.kts",
+      "sha256": "f8851652b865ae2dbaed7661310d0f18c8eb24afb6b96b91e69a3c6a4dcd8071"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\gradle.properties",
+      "imported": "integrations/deskhand/android/gradle.properties",
+      "sha256": "2c2a5d317d9211aa85790af6654edefc98da61f81a9a0b003c637870ba198b6a"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\gradlew",
+      "imported": "integrations/deskhand/android/gradlew",
+      "sha256": "a5a5c199ba02189ae8c46a334223371a20599d9c298ef65e7540ede4a3f72d59"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\gradlew.bat",
+      "imported": "integrations/deskhand/android/gradlew.bat",
+      "sha256": "d539676c48b596afda64c963ec8f7ee56c7b3fe7e3b81d1dbe2d1a1e3dd9e9f8"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\settings.gradle.kts",
+      "imported": "integrations/deskhand/android/settings.gradle.kts",
+      "sha256": "a65b795101873f4c3ac4992583ac954f3e0042f76393c8ec898650abce02af50"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\version.properties",
+      "imported": "integrations/deskhand/android/version.properties",
+      "sha256": "121679db3c4a53880b4806e0e508bd7eac2bd6f6ab7f7a403e0e6245c729becb"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\build.gradle.kts",
+      "imported": "integrations/deskhand/android/app/build.gradle.kts",
+      "sha256": "b9b54a1afe8daf1c699b9a9261d3d7cb2ab411b631daa1ed4b7cdbb02f3e2b04"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\AndroidManifest.xml",
+      "imported": "integrations/deskhand/android/app/src/main/AndroidManifest.xml",
+      "sha256": "e39b79919d84bd57b38a98d8f4679f3496da5970c35931274e02bb6bd84a88c8"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\androidTest\\java\\com\\deskhand\\android\\HybridDecoderInstrumentation.kt",
+      "imported": "integrations/deskhand/android/app/src/androidTest/java/com/deskhand/android/HybridDecoderInstrumentation.kt",
+      "sha256": "3ee7a39ec3e9202afd22fde4d48200450db6592b5f265ce4f274a1ff3c5ad315"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\AdaptiveVideoDecoder.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/AdaptiveVideoDecoder.kt",
+      "sha256": "85b40b4943f4d574436394032ff9cbabd059201c9bc4cc5f0933539b648b37cd"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\AgentsDrawer.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/AgentsDrawer.kt",
+      "sha256": "dae037ecb2d71945a1fb6d217a9693bfa097e1a6eddaa55e96cf4f9f571d20ac"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\AgentsRepository.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/AgentsRepository.kt",
+      "sha256": "e18361742bd4cee8e2ac2d7eef3f25676e3e0e5d1f835793acfbe95d08d5cea2"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\AppUpdates.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/AppUpdates.kt",
+      "sha256": "56cde263900aa2638583284ae6da44d285f0c1fea60cc8341079c89bbe3899be"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\AssistantApprovalDialog.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/AssistantApprovalDialog.kt",
+      "sha256": "a2a775c114ac410232e1aed9400f06927e29967af86c3366d331948e276d6a59"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\Changelog.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/Changelog.kt",
+      "sha256": "1048180be4ea7717de74f81cb65a3d2101710d81317d2ab129c10ed8b3b93ff0"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\DeskhandCrypto.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/DeskhandCrypto.kt",
+      "sha256": "b3800d973e5b1022ed8100be94041c94d3851f2ccabb9548b19cd6c202399583"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\DeskhandSessionService.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/DeskhandSessionService.kt",
+      "sha256": "74fd9ab63cc11894ae78f687edfe3c90d89e9a8f7ef705ba0f32f9aa098276ee"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\DeskhandTheme.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/DeskhandTheme.kt",
+      "sha256": "f9bdb91809116e51577d3993d7b10e26a9e1d6d95dad6c99276fdfb66dc43ab8"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\DesktopBack.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/DesktopBack.kt",
+      "sha256": "e703777ec88728fafb67ea2ad4f7273719e586fa872e98478354452aa9ea16d1"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\DesktopBrowser.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/DesktopBrowser.kt",
+      "sha256": "8926f95f3b9d03469ea340a9bf39e0b60d0da6e9da7f5bbf54bc50552619f7e8"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\DesktopBrowserView.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/DesktopBrowserView.kt",
+      "sha256": "a0b795e5fe056e99a71e7955181797473c1e6afcd996ce87ac1ed363bfbfa71a"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\DesktopChatState.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/DesktopChatState.kt",
+      "sha256": "aac3f825a46717c690776f309016cf8e76a9051fe3796d8d4e91822ec77dfe46"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\DesktopChatUi.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/DesktopChatUi.kt",
+      "sha256": "e5f868c54e79f2bda8be740be52f20748c2563ff570f0a5c2a805cde89b226be"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\DesktopScale.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/DesktopScale.kt",
+      "sha256": "8e1095a60ba8032dc39a6d8e9a7823d79d479eb5b432eb342e5c110fd3196ada"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\DesktopViewControls.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/DesktopViewControls.kt",
+      "sha256": "bf496e42d98f0d7201e76ab4eef8cf267091f52d336a34d29fe041ac5e7a75ae"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\DiagnosticsScreen.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/DiagnosticsScreen.kt",
+      "sha256": "d0abf8f53580cd883aafcf68adbafba5a4662078fe3109cab11add9de971186d"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\EmbeddedTailscale.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/EmbeddedTailscale.kt",
+      "sha256": "6083b26429b8f037872ad9d1c8851aef1eebb92e20f6e77c6d9b412f69dee1c2"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\FallbackDns.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/FallbackDns.kt",
+      "sha256": "39dc7654792a1045f61b19530cdf937c281b309d4eef46d021c0e7f185477b67"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\ForegroundWindow.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/ForegroundWindow.kt",
+      "sha256": "d66eb2f8204f69c54dc2b5eee1198dfdfb4837bb10e4fa06d270976bfa6d3247"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\MainActivity.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/MainActivity.kt",
+      "sha256": "d60c4aaf503d81db2a8d5ab2a0d8572e29d01bef2dba20119bdcef9ca994102a"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\Model.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/Model.kt",
+      "sha256": "8888716e94db771eb63119bb8cf0a226540ecf782ea21f6b49f0736a49533937"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\PcLink.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/PcLink.kt",
+      "sha256": "be94ebeefff1c53c8e071fbe98270527c2b165b25a946d7389f38a9cf16b5776"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\PcStore.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/PcStore.kt",
+      "sha256": "b31cafe1f55a1f35bb3620893cc2f343403d8f6070a6c2a73e32f55b70bc65bf"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\RemoteKeyboard.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/RemoteKeyboard.kt",
+      "sha256": "41bf42cf36fccba0e299a4fc8b0f6ad827d3a4daacee923a7e05d85462bbfc08"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\Transport.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/Transport.kt",
+      "sha256": "a02a39df3174d472f9b9c158bb8efbca8e1f035737a319a9b43d4c2063e59236"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\UpdateDialog.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/UpdateDialog.kt",
+      "sha256": "e98e4717ac41001cbe1815d279536be0de15e67263c2de6e596d5f0dcdf34025"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\UpdateWire.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/UpdateWire.kt",
+      "sha256": "e8e27230e30cc0060552a1a4a7df5d52f3648b3dad8447a07a6a6bbb47523501"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\VideoTexture.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/VideoTexture.kt",
+      "sha256": "6dff2263b013a9e5ee4917548573fd383c090c19f44c67af8305c21f8ea0424e"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\ViewerLayout.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/ViewerLayout.kt",
+      "sha256": "12d24ec533b189bebd163b4ded658d6851efc0778665c64d160fbdaaed7e4994"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\VoiceReplies.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/VoiceReplies.kt",
+      "sha256": "1e0f9c7ed61e7a73242be2b91d2ac4aa59d850f2f96a71331495762791ee9db8"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\java\\com\\deskhand\\android\\ZoomMemory.kt",
+      "imported": "integrations/deskhand/android/app/src/main/java/com/deskhand/android/ZoomMemory.kt",
+      "sha256": "aa7c7a3e9de1f1d2c9756636a0a5112144c89d0ca52bdb2d08cea4b2cdd10b47"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\res\\drawable\\assistant_settings.xml",
+      "imported": "integrations/deskhand/android/app/src/main/res/drawable/assistant_settings.xml",
+      "sha256": "6b473dbdb80e4a99bc8b30edfea751169ce57f2a0dab2e07925ecf54cc1210b2"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\res\\drawable\\chat_history.xml",
+      "imported": "integrations/deskhand/android/app/src/main/res/drawable/chat_history.xml",
+      "sha256": "d5b8a14cbbeb096eae4ecc59d8a02e8c4eaeaefd172078f57a7bdbb1df6be587"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\res\\drawable\\chat_send.xml",
+      "imported": "integrations/deskhand/android/app/src/main/res/drawable/chat_send.xml",
+      "sha256": "77647bcdf9ad18ff4a8b809833103934b3a78673e95d785335774e9fc5889f6f"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\res\\drawable\\file_type_application.xml",
+      "imported": "integrations/deskhand/android/app/src/main/res/drawable/file_type_application.xml",
+      "sha256": "40229555518bee4db18c0c3d764fa81a2d2ca505c4a6034fda332b7f9ff0f98b"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\res\\drawable\\file_type_archive.xml",
+      "imported": "integrations/deskhand/android/app/src/main/res/drawable/file_type_archive.xml",
+      "sha256": "699433909ac2cb17548ad3681f3a800c22ed7e868ad642319326311683a32993"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\res\\drawable\\file_type_audio.xml",
+      "imported": "integrations/deskhand/android/app/src/main/res/drawable/file_type_audio.xml",
+      "sha256": "5ef026fc99a11f949f5537bc28045d280b7d9c23056d63f667ef28446905b172"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\res\\drawable\\file_type_document.xml",
+      "imported": "integrations/deskhand/android/app/src/main/res/drawable/file_type_document.xml",
+      "sha256": "1267ca6508744c740983697243a27ac9f8bcfbbbee8e749083d1581f130e5db7"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\res\\drawable\\file_type_drive.xml",
+      "imported": "integrations/deskhand/android/app/src/main/res/drawable/file_type_drive.xml",
+      "sha256": "9d304d9672abe1df01c2f6923a9868809f82ccbb4082e50216dae840ba1ac066"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\res\\drawable\\file_type_file.xml",
+      "imported": "integrations/deskhand/android/app/src/main/res/drawable/file_type_file.xml",
+      "sha256": "3ce2a10136e74665ba307ef158dfa0e475aab8a0b43e3d8e03564ee5a8683a75"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\res\\drawable\\file_type_folder.xml",
+      "imported": "integrations/deskhand/android/app/src/main/res/drawable/file_type_folder.xml",
+      "sha256": "a172cf4260a74bc0b4686eaa6ab8c09b495191928d1bd10d63fa77cc76ec8440"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\res\\drawable\\file_type_image.xml",
+      "imported": "integrations/deskhand/android/app/src/main/res/drawable/file_type_image.xml",
+      "sha256": "a19ef2953dc61b3c849ed5f62ce63bf3f27455a210f4d927c8d569c23959b023"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\res\\drawable\\file_type_shortcut.xml",
+      "imported": "integrations/deskhand/android/app/src/main/res/drawable/file_type_shortcut.xml",
+      "sha256": "99464450fbc5a6067b1278f0f87cd396753885fa64e9db17bc0eb11f70b71855"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\res\\drawable\\file_type_video.xml",
+      "imported": "integrations/deskhand/android/app/src/main/res/drawable/file_type_video.xml",
+      "sha256": "e7786d15e82ea0dc85a2cfb2cb39b5f144ff12aa916a5ff748d6131c2362786c"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\res\\drawable\\voice_replies_off.xml",
+      "imported": "integrations/deskhand/android/app/src/main/res/drawable/voice_replies_off.xml",
+      "sha256": "858b0993dec2cd5482716b86a2bfaed12fdcb7d903a241265593bee42e0dfba4"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\main\\res\\drawable\\voice_replies_on.xml",
+      "imported": "integrations/deskhand/android/app/src/main/res/drawable/voice_replies_on.xml",
+      "sha256": "3dbe26473719e4da81fbc26360389c39e3fce6f183f1ec42596c2501bded8a0f"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\AgentStopTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/AgentStopTest.kt",
+      "sha256": "8702cf3547b49d95c90234ed2fd6c4aa3c8625b97d9d534a4407ec8865631416"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\AssistantApprovalDialogTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/AssistantApprovalDialogTest.kt",
+      "sha256": "87c3359bc1f5e22eb225290bd7a17aeee812390d09e5a76ae82a6b0d40fa9b75"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\AutomaticUpdateTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/AutomaticUpdateTest.kt",
+      "sha256": "2d57786a0b4e59c4336fe3809fc20071add3b837140ef6564514ebb9b27b0bf2"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\BoardPostTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/BoardPostTest.kt",
+      "sha256": "edbde1c71d0197cc74e51afe9e62086df25d09c1e45cc6c8fa69811c4e11502e"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\ChatFreezeTimeoutTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/ChatFreezeTimeoutTest.kt",
+      "sha256": "61af5140fab5f1629ed8a3fa658835120e8a929136a4a7da39130c102582bf70"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\ChatSubmissionTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/ChatSubmissionTest.kt",
+      "sha256": "2027c415f093b1d57e2985882e8f02ad8d9f8f2e7631da40401bad379a439f3e"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\CryptoTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/CryptoTest.kt",
+      "sha256": "ba541a354dc522091dbeaf93a472bdf5f86803d77282e3dfdb723c74e47fe10b"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\DeskhandSessionServiceTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/DeskhandSessionServiceTest.kt",
+      "sha256": "80ae1205e2ab107765f99a1888ffb23cbeff17efa292108b03f727c3e4a93025"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\DesktopBackTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/DesktopBackTest.kt",
+      "sha256": "eaad722883bd88b690da48a20c72d653526ce5a96dc0192f04326271a40823ba"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\DesktopBrowserTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/DesktopBrowserTest.kt",
+      "sha256": "f469bbd74e72883960f21f53416d76de5c4dfff66ea6548cb93940c1dd1c1d21"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\DesktopBrowserViewTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/DesktopBrowserViewTest.kt",
+      "sha256": "932580370d38f132a38cdee4bd09f1b0a3765fa39cad82472ec1409c64b937cb"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\DesktopChatPreviewTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/DesktopChatPreviewTest.kt",
+      "sha256": "a96c5186638c5c51cb4cf4265a1b40d25fcd79acf7b7c8690c7fc4434eb67406"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\DesktopChatStateTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/DesktopChatStateTest.kt",
+      "sha256": "d15b6a67eaf43637f225b7a9738e70bdc3aacd7310b480bc53d20554e677e797"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\DesktopChatUiTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/DesktopChatUiTest.kt",
+      "sha256": "8208dfcb203cd80144a0c82df55563e823ff5337e0eabff2fd7c49dbd3a5e572"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\DesktopScaleTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/DesktopScaleTest.kt",
+      "sha256": "6f4fbd556d24ae6fb0e0c1899e143ae32b8baa93745e32e8a36d7b878344d907"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\DiagnosticsLevelTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/DiagnosticsLevelTest.kt",
+      "sha256": "f3dd6b5ce4bd1f538b9bbde60ea4f15c97107aec649452e35be79a5686bdd17b"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\DiagnosticsScreenTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/DiagnosticsScreenTest.kt",
+      "sha256": "dea31bc9a9eccaccfa005ad943a578260f36f0eb86045ab32135a336f3f6b606"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\EmbeddedTailscaleSocketTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/EmbeddedTailscaleSocketTest.kt",
+      "sha256": "8a49c073dd68dcc1957fc1d322499118ee4cf03935d1e0e977f9ac8fca8380bd"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\ForegroundWindowTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/ForegroundWindowTest.kt",
+      "sha256": "30d9d82d6b8f684e4827794054b2a25d5122282206bb6a2397fcc0002d379ad2"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\NotificationPermissionTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/NotificationPermissionTest.kt",
+      "sha256": "78deb358f56a0087248b62ae5a9bb408fd09f9b2fd49cd3633b105ba434cc72a"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\PreciseMagnifierTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/PreciseMagnifierTest.kt",
+      "sha256": "aabe8baf9de46eda4d670fc03482b79a95e753aee0a4dc8c1e45b3c7aee7b16b"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\StreamPushTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/StreamPushTest.kt",
+      "sha256": "cbe9b766bff52f9bd058259384c6bd28091036bdd70df2134e87a694472e4573"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\TransportFallbackTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/TransportFallbackTest.kt",
+      "sha256": "7b1e5a86f765bc501709538a50806926a70d3ea0019800683a5e6e59ba7bc89b"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\UpdateWireTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/UpdateWireTest.kt",
+      "sha256": "d8f1d8045571e23d4fbd4d77fe930273f2f91c046f3217c3af98364e89e8fe73"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\ViewerLayoutTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/ViewerLayoutTest.kt",
+      "sha256": "f78fee89458d175f0cf1af90208655a2156dead45eed6354c6a84d928eac0d15"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\VoiceRepliesTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/VoiceRepliesTest.kt",
+      "sha256": "78e9147101157857d4be921efe571bb9482b2ab3c337f49cdfd2e489432d32e6"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\WorkerStateTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/WorkerStateTest.kt",
+      "sha256": "1e41cc56242ab3491a15aa4a0daf48b54a0a46346af77d3eb3da627ad0d33d5f"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\ZoomMathTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/ZoomMathTest.kt",
+      "sha256": "fc3ff950302ce8746794a7daff937d70331b274112d973eb957bbd46726be7b5"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\src\\test\\java\\com\\deskhand\\android\\ZoomMemoryTest.kt",
+      "imported": "integrations/deskhand/android/app/src/test/java/com/deskhand/android/ZoomMemoryTest.kt",
+      "sha256": "89a8b8f1b7b72ba7dbb2cb0424646bc49eff6b1687761dc2d63a0d02b856efd3"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\gradle\\wrapper\\gradle-wrapper.jar",
+      "imported": "integrations/deskhand/android/gradle/wrapper/gradle-wrapper.jar",
+      "sha256": "497c8c2a7e5031f6aa847f88104aa80a93532ec32ee17bdb8d1d2f67a194a9c7"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\gradle\\wrapper\\gradle-wrapper.properties",
+      "imported": "integrations/deskhand/android/gradle/wrapper/gradle-wrapper.properties",
+      "sha256": "c94d41b634a5e0ff8a2f812023697b1337eebac18e9962610356a1793f72896d"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\deskhand-work\\Deskhand-android\\app\\libs\\tsbridge.aar",
+      "imported": "integrations/deskhand/android/app/libs/tsbridge.aar",
+      "sha256": "157f8b0090d95b13c1126d5a507aa2ca2e883c7358f770e378b4d06333bb1b99"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\Deskhand-windows\\Deskhand.Windows.App\\app.manifest",
+      "imported": "integrations/deskhand/windows/Deskhand.Windows.App/app.manifest",
+      "sha256": "fa17bccd6967ed8c85e87f7479f2832df656f7b4eef22f0b1257fa1e293b63b8"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_action_claim.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_action_claim.py",
+      "sha256": "7f9b9a1dd9cff9cadb3ab07c7aea8a5dbf2a5b633b478ba0f4053281a26aa430"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_agent_session.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_agent_session.py",
+      "sha256": "b8b3a364d4ac5f4f031ef5d53d7e5f33f94bab09a615d5dd6fc6eea80ca52ff6"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_bridge.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_bridge.py",
+      "sha256": "2075db44e0e8c272e7c6d281fc88cd6740b3dad9880a7b2bd8ab10d27704b76c"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_channel.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_channel.py",
+      "sha256": "f0bef0d19747835329615ec44000dc14ef03ec15880bb9b51ebad0adb89f48b9"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_checkpoint.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_checkpoint.py",
+      "sha256": "296b19f594ae6f91fd6952f73a7bb798f0cde058758b3f8a914822694d6282a3"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_cloud_tools.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_cloud_tools.py",
+      "sha256": "db6dedf2bfd91049c3b6f3ee2977e939e24cdbe50ad54442bca6ad713e61511a"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_codex.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_codex.py",
+      "sha256": "2e844d73140579d2a34474eaaab7560021d3e12ac732d56c7c15302718606a34"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_diagnostics.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_diagnostics.py",
+      "sha256": "f499414fa846bbca1e666538e66f2795b435a36a4ac3ff18b3969f4448bf8b9c"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_dispatch.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_dispatch.py",
+      "sha256": "aac9f2559c9c31870d0057c783094ba4e566618eee934ed9af1a5890a494c05e"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_evidence.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_evidence.py",
+      "sha256": "aaa89e032589036f933f7fdd5ec51a5b161b2302ef679d0a7ede2ae4e1118d7b"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_failfast.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_failfast.py",
+      "sha256": "94fcac46ce642f76ff21aa8e290bff83d0bd9168f3df661f5878f481882515c3"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_grounding.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_grounding.py",
+      "sha256": "4e2005ebd9e33b58f7f4a0ca413fb41df2a8c918d35c937daf03cfecd9b55b54"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_host_rpc.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_host_rpc.py",
+      "sha256": "6f1eeba0109885b4d34fcbc218a0fb738d9de295bbe0359dec76ec5a5ca4036b"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_index.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_index.py",
+      "sha256": "96e0282f999d8616292aebbbb589a4a75966d4f3bd5c8fc5bf402644143216e1"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_local.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_local.py",
+      "sha256": "db6a79d24f195be4ba2a5a4081fdd6f72a852d182e0684fcd2646011eed47068"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_local_tools.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_local_tools.py",
+      "sha256": "ac5f4a368ce3b3e7ceb06b988d5d5ed9469bc7fead5505c3ccc1ec8a7ee0919a"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_mailbox.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_mailbox.py",
+      "sha256": "b6ebf779e4c866e90748286b90b6ab7726ae314fff2edece65ea38a87a2ca78f"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_memory.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_memory.py",
+      "sha256": "a9e85bba44e8e8bcbf965875a6031b3ce5501272807d7445534b193b0241a848"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_musebridge_runtime.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_musebridge_runtime.py",
+      "sha256": "1c66620b7b0f3e4199d78ec9bb7b2e18ac177f03e320e23d0de274f602dfe66e"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_muse_connection.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_muse_connection.py",
+      "sha256": "a64bed65c7ff695f707b99d759397e76561a660a772dfff276ff08fd208b89b7"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_muse_funnel.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_muse_funnel.py",
+      "sha256": "428f7a75eaf34ace30efe174fc7f71bb1d74edf9145e12a10d91f620dbd24c10"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_muse_relay.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_muse_relay.py",
+      "sha256": "7e52f0366ab1a8714ba7300cabe5eea7ba087493ef55c29ac939bb71297c4b82"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_muse_service.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_muse_service.py",
+      "sha256": "07c3fee536d4b8f3763f883792bc89f09983f2d33a1b9effcf5d75595fc70bcd"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_openai_local.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_openai_local.py",
+      "sha256": "53f3e50f6be78a74accbc28f011a359a45c50b77fb833f746263793432bb169a"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_reconnect_v2.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_reconnect_v2.py",
+      "sha256": "54e408af898e2267881c9e0e0637c10ae0f8dba3e59ad8d9eb5a8884ff831f54"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_retention.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_retention.py",
+      "sha256": "5f71d2ec7704f9d73d1f5fb49fc9a9d5b36991e948891e6c8ab384190e73df71"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_router.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_router.py",
+      "sha256": "19c7794a1c9276328927bacde3206a23c36639cc4c80c4a6824990b472e52725"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_runner.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_runner.py",
+      "sha256": "ff2daf7c1296df08e827a40ca7dd3061df7a454f50bfafa326d7336bff8251db"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_runtime.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_runtime.py",
+      "sha256": "0ab91e6d232a9b5fcae493e7e33b3fa2a7424468585d44446ec4ce7e6301d4a7"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_search.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_search.py",
+      "sha256": "f4f976c70660cd4d1c4f18be4b1c357357ea6323e0e7d83c0b579c93c7f86084"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_service.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_service.py",
+      "sha256": "eea2b17a6bf00a31f17f2c54a47a991f90a2283d004ad020f1c94000c89561be"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_skills.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_skills.py",
+      "sha256": "35411f4a8091226413720ebff390fd2de6e6a0b66fdb5153783caa3f39d1cca9"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_smarts.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_smarts.py",
+      "sha256": "2d5b9377cbc75aa595923e3fb17134564d1b8798c4b37771c03e7d39515bc35e"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_stream.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_stream.py",
+      "sha256": "9cf676a39dd82cbe3df1e6cd6a1f9cc9f17c327b3dba80e5adf73fb6bdfb8b32"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_task_agent.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_task_agent.py",
+      "sha256": "72d1cd01c26c16a2ebbd851e85015bbcd62f2b8afb1853b421f37eb7e3e10efb"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_task_agent_lifecycle.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_task_agent_lifecycle.py",
+      "sha256": "b4d3cb6d5f2dcb7baabc14273bcd9348abc9ad18cbcb0fc89a205e6f456a5d9a"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_task_agent_op.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_task_agent_op.py",
+      "sha256": "9b8348cdbc50b72eb890dbcc9d19cf1361b46777881e82666c5e9ba36da60a3d"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_timing.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_timing.py",
+      "sha256": "b6bd542a3a33267980f40c430e853481e8d3cfd1a02218cf00c1067a2844d662"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_tools.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_tools.py",
+      "sha256": "1f4d26eee416c6f84464e5f6402ea20b729201b1efe3e751ab0e0aa27ffa0e35"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_tool_loop.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_tool_loop.py",
+      "sha256": "097dde1261c5cd8f5286d3f25933140d2e5c5768e49e5df9da062dcf06b2fa5b"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_tool_protocol.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_tool_protocol.py",
+      "sha256": "86d72ba53f119a1e70d37c07032d42c8e91ff3b8a335f9a6e0db71f3a95cac4a"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_transfer.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_transfer.py",
+      "sha256": "a4fac652b8eeb6a13190b7899b8a321bc10b90115d9dd7ed65b369b593ebd6fe"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_tunnel.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_tunnel.py",
+      "sha256": "79190b7ec4a63b0dc65587686bea8b671bf5265849d31d63f1a9e4f599595385"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_verify.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_verify.py",
+      "sha256": "6f857902720c3745a3ffc937f007dce94d9260b2a130e193d199e545a4da11f2"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\deskhand_worker_watchdog.py",
+      "imported": "integrations/deskhand/assistant_service/deskhand_worker_watchdog.py",
+      "sha256": "854a609b867b51635dc5a836a6014bb73e9bacc35bed5ee3edeaba9c48772bbd"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\live_openai_smoke.py",
+      "imported": "integrations/deskhand/assistant_service/live_openai_smoke.py",
+      "sha256": "1c81521855b3c7b6ba230185c3ba857d889ad69d5d261a2cda457f4181e51aa7"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\requirements.txt",
+      "imported": "integrations/deskhand/assistant_service/requirements.txt",
+      "sha256": "99e0b8b9b407567fea768465ea96a85d5867b63b3e5130399660ca941566cb3c"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\run_task_agent_fallback.py",
+      "imported": "integrations/deskhand/assistant_service/run_task_agent_fallback.py",
+      "sha256": "ff22d078e1f485b861bdab7457701c38bd7379e8dbd3b22f8e7081ccf7fe33e6"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\smoke_codex.py",
+      "imported": "integrations/deskhand/assistant_service/smoke_codex.py",
+      "sha256": "2497fb24afa3aa04d27c31ae866b1521e50b72ddd28fefa7400799427fe9eab4"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\smoke_codex_stop.py",
+      "imported": "integrations/deskhand/assistant_service/smoke_codex_stop.py",
+      "sha256": "b17eb616326141f3b191305ed2e6e3665a1186303b214d1a41b67578b8211b4e"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_action_claim.py",
+      "imported": "integrations/deskhand/assistant_service/test_action_claim.py",
+      "sha256": "5f80c6834c8a1a848df4c48353393e476fd4dd491ae37fe73723c4dcad66feca"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_agent_session.py",
+      "imported": "integrations/deskhand/assistant_service/test_agent_session.py",
+      "sha256": "74dfd567e9e4c629f340c1e73f16a6eeb703e35daae380882f18acc9b09e944b"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_batch2_speed.py",
+      "imported": "integrations/deskhand/assistant_service/test_batch2_speed.py",
+      "sha256": "306b7d799928f16ef297ac85f51e0c355b9281379d62c143e0d36123048c022e"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_chat_service.py",
+      "imported": "integrations/deskhand/assistant_service/test_chat_service.py",
+      "sha256": "0531a2cd1e42abc095d9fb3608d964ea162472159bd317e92578bd2bdf58361f"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_cloud_host_fixture.py",
+      "imported": "integrations/deskhand/assistant_service/test_cloud_host_fixture.py",
+      "sha256": "979479f5752d0d928cbf1b7f999a94e273f9458de7f7cc986cb14f4616e0345a"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_cloud_tools.py",
+      "imported": "integrations/deskhand/assistant_service/test_cloud_tools.py",
+      "sha256": "0ffc1104fdc17f3afda80f8a02723029e06ba859960cdc26eb5d8c587df8da4e"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_deskhand_codex.py",
+      "imported": "integrations/deskhand/assistant_service/test_deskhand_codex.py",
+      "sha256": "a93bdf49c9645aa49d65f69bf422ea7336061b47884df8a186353415fbb02e03"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_deskhand_task_agent.py",
+      "imported": "integrations/deskhand/assistant_service/test_deskhand_task_agent.py",
+      "sha256": "e0ab9f6fd3c61550cb89c5d2d67c5051b538dae4cd64413ccdda8a00f753c137"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_deskhand_task_agent_lifecycle.py",
+      "imported": "integrations/deskhand/assistant_service/test_deskhand_task_agent_lifecycle.py",
+      "sha256": "698185ccbda63eeb05f0901e011771e758efb687c2984f4a93b6b8db7057d56b"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_dispatch.py",
+      "imported": "integrations/deskhand/assistant_service/test_dispatch.py",
+      "sha256": "f334e7db9896fc32d7087da60ff787a22a3a19f3524cf01d94ef7504ec45d617"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_full_access.py",
+      "imported": "integrations/deskhand/assistant_service/test_full_access.py",
+      "sha256": "a28647a5680176b17ce13685c66a3192371695b761e2174a32be9e6eeb7b6eb4"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_host_roundtrip_fixture.py",
+      "imported": "integrations/deskhand/assistant_service/test_host_roundtrip_fixture.py",
+      "sha256": "d349349c08ee963950fa218de65140218bc150162696900913066a1424a869ab"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_host_rpc.py",
+      "imported": "integrations/deskhand/assistant_service/test_host_rpc.py",
+      "sha256": "ed8a002000036cfc064e09b73fdd39ad69aa6a4bf2523372eebd4f22dcf66963"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_live_local_smoke.py",
+      "imported": "integrations/deskhand/assistant_service/test_live_local_smoke.py",
+      "sha256": "391a92358939c6168ab4b13ea36bb7ad85350caa698c4308782d089eb027488e"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_local.py",
+      "imported": "integrations/deskhand/assistant_service/test_local.py",
+      "sha256": "5e6c196f8f51648d0c90569ab70b1f1314bc5f19861bb780ec30b244570db56f"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_local_server_fixture.py",
+      "imported": "integrations/deskhand/assistant_service/test_local_server_fixture.py",
+      "sha256": "93a4e5d0a8a3d6f4b128e8d0c96ee846f34edec6c4fea1052d07bce5638f0d30"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_local_tools.py",
+      "imported": "integrations/deskhand/assistant_service/test_local_tools.py",
+      "sha256": "dc4ebd991a980a472d331f564e39344fdf1a1a05c2008d6d971d8afc2b578c7e"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_mailbox.py",
+      "imported": "integrations/deskhand/assistant_service/test_mailbox.py",
+      "sha256": "cb6ba1337bd97d79cd6786838c5f7e7e7a23db8be9d2411352853d5d10822e0b"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_managed_runtime.py",
+      "imported": "integrations/deskhand/assistant_service/test_managed_runtime.py",
+      "sha256": "0ce86fde3aabaf0ceb66eb4b6d8db0073893196feffab96785a42d0020137cce"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_merged_chat_service.py",
+      "imported": "integrations/deskhand/assistant_service/test_merged_chat_service.py",
+      "sha256": "0bce1369cfc973a84ee6cf734eb25f37a9c2a1501d90a817b7e6ba960388b185"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_merged_dispatch.py",
+      "imported": "integrations/deskhand/assistant_service/test_merged_dispatch.py",
+      "sha256": "c4714713bf0eefa7408d512a69d00d02c4185bc86a613cd5c3a8147bb33cd317"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_musebridge_runtime.py",
+      "imported": "integrations/deskhand/assistant_service/test_musebridge_runtime.py",
+      "sha256": "621465fc3269ab623db9e9e00357bf278c4910018110529579843adccc29b299"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_muse_connection.py",
+      "imported": "integrations/deskhand/assistant_service/test_muse_connection.py",
+      "sha256": "c4724f368435dd08bde5bade8bc994819ca69aaa72e9a14b24a3e4a54c293587"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_muse_funnel.py",
+      "imported": "integrations/deskhand/assistant_service/test_muse_funnel.py",
+      "sha256": "7456179980d2d6c7fda82494ce32a5333e0e98cfa699ebe39e1674c7e9126d51"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_muse_host_runtime.py",
+      "imported": "integrations/deskhand/assistant_service/test_muse_host_runtime.py",
+      "sha256": "6723ddc7a8efa872d315c542982c51b8397f64a3810a7d1ee74462787667e030"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_muse_relay.py",
+      "imported": "integrations/deskhand/assistant_service/test_muse_relay.py",
+      "sha256": "894946f79dd8959367a13d60f5a5c71a495569eaa5d7bdb3df97e675c7cf91b4"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_muse_service.py",
+      "imported": "integrations/deskhand/assistant_service/test_muse_service.py",
+      "sha256": "4c5ed599fe5970908f9af38519ed7348005bab4ff55687a1669b54f2c6858576"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_openai_local.py",
+      "imported": "integrations/deskhand/assistant_service/test_openai_local.py",
+      "sha256": "d68e403764bc1c4728361bd42096d9b347fb941a38adebfa807cd5c4b373750b"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_phone_stop_candidate.py",
+      "imported": "integrations/deskhand/assistant_service/test_phone_stop_candidate.py",
+      "sha256": "5a54da264e705c477d9298ced830168e7a53fe812c775c6c28ad3c2b1257ae2b"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_smarts_grounding_channel.py",
+      "imported": "integrations/deskhand/assistant_service/test_smarts_grounding_channel.py",
+      "sha256": "8301a27c531c49bce0a322d8ce8458b927b1f3b818c36cd63012c0ae543ce7fb"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_smarts_index_router_checkpoint.py",
+      "imported": "integrations/deskhand/assistant_service/test_smarts_index_router_checkpoint.py",
+      "sha256": "4eaeb1cebc86f5b41fa305818d6185de13e065f248fe37ba1a60abf9c12c8df6"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_smarts_plan_evidence_recovery.py",
+      "imported": "integrations/deskhand/assistant_service/test_smarts_plan_evidence_recovery.py",
+      "sha256": "38325b7ed21f5b88c9259270cb31fa3b2ecafdd71d3e374e807fc4461851f961"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_smarts_tools_memory_skills_benchmark.py",
+      "imported": "integrations/deskhand/assistant_service/test_smarts_tools_memory_skills_benchmark.py",
+      "sha256": "9482cbed712e5de08e8ded2cccf16e4db1e8d3ca74f65a72c415966e4c33b19b"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_speed_durability_staged.py",
+      "imported": "integrations/deskhand/assistant_service/test_speed_durability_staged.py",
+      "sha256": "d2227f5554be450a7e605643b8c5be1a0dc33708f264652d48b90947d732a840"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_stuck_turn.py",
+      "imported": "integrations/deskhand/assistant_service/test_stuck_turn.py",
+      "sha256": "cbdf5dd542b23a1f24f706dbf2c3b11eed45dc930b62df93241b852ede829b5f"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_task_agent_fallback.py",
+      "imported": "integrations/deskhand/assistant_service/test_task_agent_fallback.py",
+      "sha256": "336b3b840ce532327b00ca7fb1fb8353461f5ce3e154719d788b3194c4f2b64f"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_tool_loop.py",
+      "imported": "integrations/deskhand/assistant_service/test_tool_loop.py",
+      "sha256": "94891e7454d06882f2443d02b3054eba3b5ef0e4821b334f66fcd3efde821567"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_tool_protocol.py",
+      "imported": "integrations/deskhand/assistant_service/test_tool_protocol.py",
+      "sha256": "50ccaebfe3e5bf6a9c64a2e4472db3b220c98632f74647454d28bd962225a2b3"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\windows-100051-source\\assistant_service\\test_worker_watchdog.py",
+      "imported": "integrations/deskhand/assistant_service/test_worker_watchdog.py",
+      "sha256": "37f6c1db3b6ab2ceed2c803dac7ab1e0ef969c12b6395d0a350f5ef174ee24e3"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\vm\\claim_turn.py",
+      "imported": "integrations/deskhand/vm/claim_turn.py",
+      "sha256": "916264d75c0c6c2068b1fde8f0456d0a6294215b3f36b27f4cb8291a0fcd89b4"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\vm\\inbox_cleanup.py",
+      "imported": "integrations/deskhand/vm/inbox_cleanup.py",
+      "sha256": "40369f82e79fafbaa98f19e53b01bcb8e7405b02e6ee5528bd3f3dc455f362f7"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\vm\\OPERATOR_RECOVERY.md",
+      "imported": "integrations/deskhand/vm/OPERATOR_RECOVERY.md",
+      "sha256": "695336f22fd4cab2c8083e28e0773d75562d90820a692e93681e4b46245ef38a"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\vm\\publish_reply.py",
+      "imported": "integrations/deskhand/vm/publish_reply.py",
+      "sha256": "42a63ba4e783c17288ebe93617997482ea1c21296f96d3eb0ec6dae115535b93"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\vm\\test_consumer_hook.py",
+      "imported": "integrations/deskhand/vm/test_consumer_hook.py",
+      "sha256": "dec2e59ca6a9b3bf2472277e547e18b96525c652de22f9876e13846552dbcf84"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\vm\\test_inbox_cleanup.py",
+      "imported": "integrations/deskhand/vm/test_inbox_cleanup.py",
+      "sha256": "235c5e48f894d46829c331676719c30b4edbbc8993c51c122ea389562b329613"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\vm\\test_linux_filesystem.py",
+      "imported": "integrations/deskhand/vm/test_linux_filesystem.py",
+      "sha256": "52bd8aa836c77f157d701827694e0e87ae89b231d157c838ebe6d849460c71cc"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\vm\\test_operator.py",
+      "imported": "integrations/deskhand/vm/test_operator.py",
+      "sha256": "dcb00f00406c9a6f247ec9654044fc0b376f6bb75365ba26e998fca16c5af5a6"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\vm\\test_poster_draft.py",
+      "imported": "integrations/deskhand/vm/test_poster_draft.py",
+      "sha256": "a339b43896ff64d75738ee94bcd102f44b88ae6cf2f5a5b3ac39ca57aecac7d4"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\vm\\test_supervisor_safety.py",
+      "imported": "integrations/deskhand/vm/test_supervisor_safety.py",
+      "sha256": "f5e96d0e31c42efbdf56e54cb16db9342d124615d870be74ead92148b8559425"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\vm\\tunnel-turn-consumer.sh",
+      "imported": "integrations/deskhand/vm/tunnel-turn-consumer.sh",
+      "sha256": "f29e5fc72c0f9b6383f1ba1c98afe7e870e4b14715d485803dc4cdc63c404fcf"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\vm\\tunnel_operator.py",
+      "imported": "integrations/deskhand/vm/tunnel_operator.py",
+      "sha256": "1640b6aa2a9d8c730cd5654e3043d195ac16fdc3812e6a6a1444dca357d936fc"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\vm\\vm_tunnel_poll.py",
+      "imported": "integrations/deskhand/vm/vm_tunnel_poll.py",
+      "sha256": "6421e2d2cce7dd372be8666d524e9d24b6e18d272e880d1ae3b107e6707bd5d4"
+    },
+    {
+      "source": "C:\\Users\\Phlip\\Desktop\\Deskhand\\speed-work\\vm\\vm_tunnel_supervise.py",
+      "imported": "integrations/deskhand/vm/vm_tunnel_supervise.py",
+      "sha256": "b0f186fca21289acf925ad20f6aeea5c3ff50597b45d6cc6363e86f26c7fa650"
+    }
+  ]
+}

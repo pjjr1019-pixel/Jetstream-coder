@@ -1,0 +1,21 @@
+{
+  "origin": "C:\\Users\\Phlip\\Documents\\ChatGPT\\DeckHand\\android-vm\\embedded-ts-prototype",
+  "files": [
+    {
+      "path": "go.mod",
+      "sha256": "0b68e6ca3a2a97692a13edbacfeaec559c395ee2edfb9b013fefacb79e3ab289"
+    },
+    {
+      "path": "go.sum",
+      "sha256": "30df24d0ae8a3c0950f2b9d62127d9513366baa90df6f1b8097cb0cdfaebd4b4"
+    },
+    {
+      "path": "tsbridge/bridge.go",
+      "sha256": "8c1717e5580076a1ae836401cd143b9baddd874dccd363d2ea474ba941ef6e03"
+    },
+    {
+      "path": "tsbridge/default_android.go",
+      "sha256": "9975012141cd92ed786009d74fc93f809b4a21894bdc4d650ef88921c9a0dbb3"
+    }
+  ]
+}

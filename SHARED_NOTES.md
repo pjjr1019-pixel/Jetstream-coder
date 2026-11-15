@@ -43,6 +43,18 @@ Created this shared handoff at Phil's request. The current app is a partial impl
 
 **Remaining work or blockers:** Awaiting Phil's next work item. Will not overlap Codex files without checking with Phil first. Next priorities per notes: finish editor/index, complete scratch/job records, independent review + review-bound verification gate, then checkpointed apply + rollback — test on a disposable project first.
 
+### 2026-11-14 ~07:02 EST — Muse / Jett
+
+**Date and collaborator:** 2026-11-14 ~07:02 EST — Muse (Jett)
+
+**Starting work:** Re-read SHARED_NOTES.md and HANDOFF.md at Phil's request, to see where the build stands. No code changes in this entry. Work is paused per HANDOFF.md — no implementation until Phil resumes.
+
+**Changes and files:** None — read-only. Verified: V0.001 locked, last full npm test passed 6/6, last build passed Built V0.001, Git remote origin https://github.com/pjjr1019-pixel/Jetstream-coder.git branch main, latest pushed feature commit 1910bfb. Two uncommitted diagnostic files noted in HANDOFF.md: electron/main.ts and scripts/verify-local-proposal.mjs.
+
+**Checks and results:** Read full SHARED_NOTES.md (315 lines) and HANDOFF.md (137 lines). Current blocker is the intermittent real-model project-generation/epoch failure in verify-local-proposal.mjs — cause not established, fail-closed checks must not be weakened. Production Apply remains disabled; change-fixture.ts is test-only, not wired in.
+
+**Remaining work or blockers:** Awaiting Phil resuming work. Will not overlap Codex files without checking with Phil first.
+
 ### Entry template
 
 **Date and collaborator:**
@@ -313,3 +325,91 @@ The Usage panel shows input/output tokens reported by Ollama for successful loca
 ### 2026-11-14 — Codex paused and detailed handoff
 
 Phil requested a pause and a detailed handoff. See `HANDOFF.md` in the project root. Two diagnostic changes are deliberately uncommitted: `electron/main.ts` and `scripts/verify-local-proposal.mjs`. The current real-model test has an intermittent project-generation/epoch failure that remains under investigation; the last build succeeded at V0.001, and the last complete automated suite before the diagnostic wording edits passed six tests. Production Apply remains disabled.
+
+### 2026-11-14 — Codex local scratch worker in progress
+
+Phil approved the single-file candidate plan. Building a separate source/work candidate snapshot and keeping the project and existing scratch untouched. Real-model generation failures remain under investigation; Apply remains disabled.
+
+### 2026-11-14 — Codex single-file candidate progress
+
+The local worker creates an attributed separate source/work candidate, preserves original scratch and project files, and displays a fingerprint-checked diff. V0.001 build and six automated tests passed; multiple disposable real-model runs passed. A deterministic forced-exit test reports interrupted candidate creation and preserves original files. The earlier intermittent project-generation error was not reproduced or conclusively diagnosed; retain fail-closed checks and investigate if it recurs. Production Apply remains unavailable.
+
+### 2026-11-14 — Codex real-model diagnostic cause
+
+The intermittent project-change error was reproduced with lifecycle and click tracing: an extra trusted click on Open a project in the visible disposable test window triggered a third project open during the request. The fail-closed generation check worked as designed. The real-model diagnostic now hides its disposable window; the hidden run passed, and the desktop regression suite passed 6/6 including an intentional in-flight project reopen. Production Apply remains disabled; V0.001 remains unchanged.
+
+### 2026-11-14 — Copilot candidate check reporting and verification
+
+Candidate evidence now reports checks as passed only when the complete build/test run is valid and matches the candidate snapshot and current commands; receipts also identify missing post-apply checks. The disposable real-model diagnostic now uses a real Node syntax check and functional test, prints the candidate diff/review/results, and passed with qwen3.5:4b and qwen3.5:9b. `npm run build`, `npm test` (21/21), and forced-exit candidate recovery passed. Production Apply remains disabled. See `COPILOT_REPORT.md` for files, evidence, limitations, and follow-up review points.
+
+### Copilot checkpoint recovery continuation
+
+Project reopen now records interrupted checkpoint state in durable job history and keeps Apply blocked; receipts flag recovery inspection, and explicit test-only recovery records its result without enabling production Apply. App-restart and process-interruption coverage passed, and the final suite passed 23/23. See `COPILOT_REPORT.md` for detailed evidence and remaining safety gaps.
+
+### 2026-11-14 — Copilot recovery-status reconciliation
+
+Preserved Codex's deduplicated-warning and multiple-checkpoint blocking fixes. Project reopen now also reconciles a previously blocked job if all checkpoints are clean, covering recovery completed before a status write was interrupted. Restart tests cover corrupt journals, missing checkpoint paths, later-edit refusal, and multiple checkpoints. Build, full tests (23/23), focused interruption tests, scratch-crash and real-model disposable diagnostics passed. Production Apply remains disabled. See `COPILOT_REPORT.md` for details and unverified safeguards.
+
+### 2026-11-14 — Copilot recovery history and docs
+
+Added a deduplicated `checkpoint_reconciled` event when a previously blocked job reopens with all checkpoints clean. Restart tests now assert this event and fail-closed handling for corrupt/missing checkpoints. Updated README and checkpoint experiment notes to distinguish disposable-only recovery from production Apply. Build, full suite (23/23), real-model candidate and forced scratch-crash diagnostics passed. Production Apply remains disabled. See `COPILOT_REPORT.md`.
+
+### 2026-11-14 — Copilot recovery episode IDs
+
+Reconciliation history now assigns distinct episode numbers, deduplicates clean reopens, and preserves fail-closed multi-checkpoint/corrupt/missing behavior. Restart test confirms two separate recovery episodes yield distinct events. `npm run build`, `npm test` (24/24), the disposable real-model workflow, and scratch-crash diagnostic passed. Production Apply remains disabled. See `COPILOT_REPORT.md`.
+
+### Copilot local worker cancellation
+
+Job cancellation now aborts only that job's local proposal/review request; regression coverage verifies unrelated manual chat is not aborted and the project file remains unchanged. Build and full suite passed (25/25); disposable real-model and scratch-crash diagnostics passed. Production Apply remains disabled. See `COPILOT_REPORT.md`.
+
+### Copilot unsaved-editor approval gate
+
+The app now reports dirty editor paths to the main process and blocks candidate approval/checkpoint preparation when state is unknown or unsaved; a disposable Electron regression verifies blocking and clean reload recovery. Build and full suite passed (26/26); the disposable real-model workflow and forced scratch-crash diagnostic passed. Production Apply remains unavailable and disabled; model approval was simulated and Apply used only the test route. See `COPILOT_REPORT.md` for exact files, results, and remaining safety gaps.
+
+## Jetstream / Deskhand shared Laptop Agent
+
+Jetstream V0.001 now prefers the existing Deskhand Task-agent configuration at `C:\Users\Phlip\Desktop\Deskhand\Deskhand-windows\Task-agent\agent_config.json`. It verifies local health and the scoped chat credential with a non-consuming request for a random turn ID. Credentials stay in Deskhand and are never sent to the renderer. Jetstream does not start a competing agent or stop the shared process; if Deskhand is configured but unavailable, the status remains unavailable until Deskhand starts it. When no Deskhand configuration exists, Jetstream can start the bundled agent with a local-only, remote-control-off configuration. Muse account connectivity and coordination remain unverified; no chat or coding job was submitted. Build passed at V0.001; full tests 29/29 passed; live shared attach and detach checks passed.
+
+## Muse chat transport continuation
+
+Jetstream now offers manual Muse messages through Deskhand's existing scoped chat mailbox, route muse/muse/deskhand. The main process keeps the scoped key out of the renderer, records Jetstream's own messages in its user-data SQLite database, polls only their turn IDs, and saves replies before acknowledging them. A failed submission is marked uncertain and is not automatically resent. This is manual chat, not Muse job coordination; model identity, account usage and reserve are not verified. A Phil-authorized read-only connection-test turn `2ae38c8a-6d8a-426d-8f06-4a5d8b20645a` was accepted by Deskhand's mailbox but remained queued without a reply during verification. Do not resubmit blindly; check the existing turn if the remote consumer becomes available. `npm run build` passed V0.001 and `npm test` passed 30/30. The live connection is not yet verified end to end.
+
+## 2026-11-14 — Copilot Deskhand integration inventory
+
+Updated `COPILOT_REPORT.md` with the Deskhand source/build comparison, existing Jetstream integration ownership, test results, and blockers. The Windows 100.051 candidate does not match the available 100.050 executable/service; the requested Android candidate is incomplete, while the separate 100.050 Android source does not match the available 100.038 APK. Android unit tests were freshly run on that separate baseline (`.\gradlew.bat testDebugUnitTest --offline --no-daemon --rerun-tasks`: BUILD SUCCESSFUL, 32 tasks); Jetstream build passed at V0.001 and `npm test` passed 30/30. No phone/device or Deskhand host was available for remote-view acceptance. The existing Muse test turn still has no verified reply; it was not resubmitted or claimed. No Deskhand source was copied, installed, deployed, or restarted. Keep phone job actions and production Apply unavailable until the source, authenticated API, phone path, and separate Apply safeguards are verified.
+
+## 2026-11-14 — Copilot Jetstream Job API continuation
+
+Added a loopback-only authenticated Jetstream `/api/v1` job API, durable idempotency ledger, and disposable unit/Electron coverage for job reads, candidate diff/review/check evidence, submit/pause/resume/cancel/reject, duplicate requests, and uncertain restart outcomes. Candidate metadata omits its path; check commands/output are redacted, though diffs and receipts can contain local paths and project content. `npm run build` passed at V0.001; `npm test` passed 38/38; focused API tests passed 8/8. The desktop fixture used mocked model responses only; no real-model run or Phil approval occurred, and Apply remains unavailable. The native Deskhand adapter/relay/phone panel and real-phone viewing are still not implemented. A non-consuming Muse GET returned HTTP 200 but no undelivered reply for the existing test turn; no claim, resubmit, or acknowledgement was made, and the external VM claimant state remains unknown. See `COPILOT_REPORT.md` for source provenance, safety limits, test details, Git/version state, and recommended next steps.
+
+## 2026-11-14 — Embedded Deskhand controls in Jetstream Settings
+
+Implemented `src/PhoneConnection.tsx`, the Settings Phone connection section, and the top-right phone shortcut directly into that section. Tailscale sign-in opens the provider browser login; network status, QR generation/cancellation, pending pairing approval (view/control/reject with confirmation code), pause/resume remote access, disconnect, orientation, paired-phone control/revoke, and host approval requests are rendered inside Jetstream. Normal workspace settings remain a separate section. No second Deskhand window is required for these controls.
+
+The embedded Windows host now accepts `--jetstream --minimized` and serves the same-user-only `.Desktop` named pipe through `integrations/deskhand/windows/Deskhand.Windows.App/JetstreamDesktopBridge.cs`. Calls run on the existing host UI thread and reuse HostEngine/MainForm methods; `electron/main.ts` and `electron/preload.ts` expose restricted renderer operations. `integrations/deskhand/Start-Deskhand.ps1 -EmbeddedUI` starts the host hidden using the existing isolated `%LOCALAPPDATA%\JetstreamCoder\Deskhand-verification` configuration, preserving verification pairings. Imported backend/runtime files remain under this repository and packaged bundle. Standalone Deskhand files were not changed.
+
+Real Android verification: attached Samsung SM-A356U (RFCY10TCC8J), verification app, existing paired phone connected with control allowed; embedded network Running at 100.108.34.15. Android screenshot showed the live Windows desktop. Opened a disposable project `C:\Users\Phlip\AppData\Local\Temp\jetstream-phone-acceptance-WF5Xk9`; the phone identified the correct project, submitted job #1 `Phone test only - do not modify files`, paused (API confirmed true), resumed (API confirmed false), and cancelled the job (phone and API both confirmed cancelled). Project sample file stayed unchanged. Submit correctly showed `blocked: coordinator unavailable` before cancellation. This proves transport and job controls, not live Muse coding execution. Existing Muse queued turn was not consumed or resubmitted. Fresh QR re-pairing on physical Android was not repeated; real pairing approval is covered by the integrated Settings fixture test, not a new physical pairing ceremony. Desktop streaming was verified over Tailscale while USB supplied ADB inspection; cellular/off-site reliability remains unverified.
+
+Added `tests/phone-settings.test.mjs` exercising shortcut -> main Settings, Tailscale sign-in, pending approval code and control grant, phone control revoke, pause/resume, and section navigation through fixture IPC. The isolated test passed. V0.001 retained. Production Apply and remote candidate approval remain unavailable. Native chat/history, startup/service diagnostics, and other standalone Deskhand auxiliary panels are not all ported by this change; these are not required for the paired desktop/job path. Muse VM worker still needs its external Linux runtime.
+Startup refinement: Jetstream now proactively starts/checks its embedded phone host at normal app launch, so an already paired phone can connect without somebody first opening Settings on the PC. Existing test/agent-disable flags prevent test processes from starting the real host. The host preserves its remote session independently of opening/closing Settings. Final regression run before this guarded startup call: npm test 41/41; Settings test and full suite cover the final navigation. Build and packaging retain V0.001.
+Final output: `artifacts/Jetstream-V0.001-1794717913451/Jetstream/electron.exe`. Packaged smoke test used the real host and confirmed Settings > Phone connection, a visible QR, and SM-A356U Connected / Control allowed. Final affected tests passed 2/2 after the guarded startup addition; preceding full suite passed 41/41. Build succeeded V0.001 (existing bundle-size warning only). Desktop shortcut updated to this final bundle and app launched. Fresh QR scanning/approval on Android and off-site/mobile-network testing remain pending; do not interpret the existing-pair transport checks as a new physical pairing test.
+
+## 2026-11-15 — Expanded Deskhand feature parity continuation
+
+Detailed current-state handoff saved in `HANDOFF_DESKHAND_INTEGRATION.md`, including paths, newest bundle versus older shortcut/live host, implemented Settings feature bridge, Android toolbar regression fix, test results (Jetstream 42/42, Android 357/357, native boundary 10/10), incomplete physical drawer/orientation tests, source-path Task Agent dependency and next steps. User resumed integration after asking for handoff; continue from its Next moves rather than treating all parity as complete.
+
+## 2026-11-15 — Live new-host smoke and phone drawer/orientation evidence
+
+New host from `artifacts/Jetstream-V0.001-1794718828486` replaced only the verified old embedded host. Live Settings loaded all 12 diagnostics and 9 real catalog routes; Muse page rendered; concurrent status returned in 4ms and no nonempty alerts were present. Both real phone drawers opened and resized (files handle x506→703; agents x506→335), and Board tab opened. Agents feed reports unavailable/unknown: not full live feed acceptance. Orientation follow caused actual PC 900×1600 portrait and 1600×900 landscape with phone hierarchy rotation=1. Test stopped after phone foreground changed; original phone rotation preferences (auto=1, user=0) and host follow=false were restored. Host disconnect left landscape1600×900. Explicit phone Stop, touch mapping, voice and fresh physical pairing still pending. Imported Android native libraries trigger the 16KB compatibility debug notice; acknowledged OK without hiding warning. Full details in `docs/deskhand-feature-parity.md`. Do not infer complete parity or Muse reply readiness from these checks.
+
+Embedded Task Agent source-path follow-up implemented: AssistantClient now supplies bundle/check-out-local DESKHAND_TASK_AGENT_DIR and fails locally if assets are missing. Both imported Python adapters honor it without overriding explicit constructor configuration. New path tests2/2, original Task Agent client14/14 and lifecycle21/21 passed. No credentials copied or remote-access grant changed. See parity doc; prior handoff "path dependency not fixed" is superseded for embedded service code resolution.
+
+Final bundle1794719656536 native/package smoke passed (9 catalog routes, no alerts). Embedded host and desktop shortcut now use that bundle; app launched. Version V0.001 retained. Detailed handoff `HANDOFF_DESKHAND_INTEGRATION.md` and feature matrix `docs/deskhand-feature-parity.md` updated. Remaining external acceptance is not claimed complete.
+
+## 2026-11-15 — User-requested rebuild and launch
+
+Rebuilt Windows host and Jetstream successfully at V0.001; packaged `artifacts/Jetstream-V0.001-1794719863119`. Updated desktop `Jetstream Coder.lnk` to its `Jetstream/electron.exe`, replaced only the previously identified embedded verification host with this bundle's host, and launched Jetstream. This supersedes1794719656536 as current desktop build. Existing pairings/profile retained. Build-only request: prior test results remain recorded; no feature changes or new full-suite run in this rebuild.
+
+## 2026-11-15 — Five-recommendation continuation
+
+See `docs/prototype-milestone-2026-11-15.md`. Real local model proposal/review/build/test/disposable apply/rollback passed with simulated approval. Native16KB Go library rebuilt from preserved source and APK alignment passes; installed Android build. Muse readiness payload/host-only checks corrected (13 native checks,30 Python Muse-service tests); browser observed Ready after user sign-in. Read-only turn ead84160-8572-4896-b893-11169a0bdd34 cancelled, no reply; do not replay. Earlier old tunnel turn untouched. Full desktop/recovery and Android reruns in progress after toolbar overlap regression discovered on device. User authorized Git milestone backup; preserve V0.001 tag. Initial last-turn tool rejection was automatic approval review usage-limit failure; command not run, resumed only after user requested continuation.
